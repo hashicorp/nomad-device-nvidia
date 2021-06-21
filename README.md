@@ -6,12 +6,13 @@ for Nvidia GPUs.
 
 ## Behavior
 
-The Nvidia device plugin uses NVML bindings to get data regarding available
-Nvidia devices and will expose them via
+The Nvidia device plugin uses
+[NVML](https://github.com/NVIDIA/gpu-monitoring-tools) bindings to get data
+regarding available Nvidia devices and will expose them via
 [`Fingerprint`](https://www.nomadproject.io/docs/internals/plugins/devices#fingerprint-context-context-chan-fingerprintresponse-error)
 RPC. GPUs can be excluded from fingerprinting by setting the `ignored_gpu_ids`
-field (see below). Plugin sends statistics for fingerprinted devices every `stats_period`
-period.
+field (see below). Plugin sends statistics for fingerprinted devices every
+`stats_period` period.
 
 ## Config
 
