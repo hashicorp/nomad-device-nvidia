@@ -1,8 +1,10 @@
 # Nomad Nvidia Device Plugin
 
-This package provides an implementation of a Nomad
+This repository provides an implementation of a Nomad
 [`device`](https://www.nomadproject.io/docs/job-specification/device) plugin
 for Nvidia GPUs.
+
+**Note: this package is currently embedded in Nomad itself but the Nomad team intends to externalize the driver.**
 
 ## Behavior
 
