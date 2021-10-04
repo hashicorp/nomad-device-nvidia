@@ -1,7 +1,7 @@
 package nvml
 
 import (
-	"github.com/NVIDIA/gpu-monitoring-tools/bindings/go/nvml"
+	"github.com/NVIDIA/go-nvml/pkg/nvml"
 )
 
 // Initialize nvml library by locating nvml shared object file and calling ldopen

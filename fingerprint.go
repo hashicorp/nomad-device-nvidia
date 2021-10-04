@@ -1,4 +1,4 @@
-package nvidia
+package main
 
 import (
 	"context"
