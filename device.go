@@ -1,4 +1,4 @@
-package nvidia
+package main
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	log "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/nomad-device-nvidia/version"
 	"github.com/hashicorp/nomad/devices/gpu/nvidia/nvml"
 	"github.com/hashicorp/nomad/helper/pluginutils/loader"
 	"github.com/hashicorp/nomad/plugins/base"
@@ -51,7 +52,7 @@ var (
 	pluginInfo = &base.PluginInfoResponse{
 		Type:              base.PluginTypeDevice,
 		PluginApiVersions: []string{device.ApiVersion010},
-		PluginVersion:     "0.1.0",
+		PluginVersion:     version.Version,
 		Name:              pluginName,
 	}
 
