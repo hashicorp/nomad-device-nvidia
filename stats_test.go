@@ -1,4 +1,4 @@
-package main
+package nvidia
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	hclog "github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/nomad/devices/gpu/nvidia/nvml"
+	"github.com/hashicorp/nomad-device-nvidia/nvml"
 	"github.com/hashicorp/nomad/helper"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/hashicorp/nomad/plugins/shared/structs"
