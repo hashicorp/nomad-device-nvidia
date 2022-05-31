@@ -1,7 +1,8 @@
 binary {
   secrets    = true
   go_modules = true
-  osv        = true
-  oss_index  = false
-  nvd        = false
+  #TODO: enable OSV scan once dependencies are updated.
+  osv       = false
+  oss_index = false
+  nvd       = false
 }
