@@ -1,4 +1,4 @@
-package main
+package nvidia
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/nomad-device-nvidia/nvml"
 	"github.com/hashicorp/nomad-device-nvidia/version"
-	"github.com/hashicorp/nomad/devices/gpu/nvidia/nvml"
 	"github.com/hashicorp/nomad/helper/pluginutils/loader"
 	"github.com/hashicorp/nomad/plugins/base"
 	"github.com/hashicorp/nomad/plugins/device"
@@ -45,7 +45,7 @@ var (
 	// PluginConfig is the nvidia factory function registered in the
 	// plugin catalog.
 	PluginConfig = &loader.InternalPluginConfig{
-		Factory: func(ctx context.Context, l log.Logger) interface{} { return NewNvidiaDevice(ctx, l) },
+		Factory: func(ctx context.Context, l hclog.Logger) interface{} { return NewNvidiaDevice(ctx, l) },
 	}
 
 	// pluginInfo describes the plugin
@@ -102,11 +102,11 @@ type NvidiaDevice struct {
 	devices    map[string]struct{}
 	deviceLock sync.RWMutex
 
-	logger log.Logger
+	logger hclog.Logger
 }
 
 // NewNvidiaDevice returns a new nvidia device plugin.
-func NewNvidiaDevice(_ context.Context, log log.Logger) *NvidiaDevice {
+func NewNvidiaDevice(_ context.Context, log hclog.Logger) *NvidiaDevice {
 	nvmlClient, err := nvml.NewNvmlClient()
 	logger := log.Named(pluginName)
 	if err != nil && err.Error() != nvml.UnavailableLib.Error() {
