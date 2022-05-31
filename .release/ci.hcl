@@ -3,12 +3,15 @@ schema = "1"
 project "nomad-device-nvidia" {
   team = "nomad"
   slack {
-    notification_channel = "CUYKT2A73"
+    notification_channel = "C03B5EWFW01"
   }
   github {
     organization = "hashicorp"
-    repository = "nomad-device-nvidia"
-    release_branches = ["main"]
+    repository   = "nomad-device-nvidia"
+    release_branches = [
+      "main",
+      "cr-onboard",
+    ]
   }
 }
 
@@ -21,8 +24,8 @@ event "build" {
   depends = ["merge"]
   action "build" {
     organization = "hashicorp"
-    repository = "nomad-device-nvidia"
-    workflow = "build"
+    repository   = "nomad-device-nvidia"
+    workflow     = "build"
   }
 }
 
@@ -30,9 +33,9 @@ event "upload-dev" {
   depends = ["build"]
   action "upload-dev" {
     organization = "hashicorp"
-    repository = "crt-workflows-common"
-    workflow = "upload-dev"
-    depends = ["build"]
+    repository   = "crt-workflows-common"
+    workflow     = "upload-dev"
+    depends      = ["build"]
   }
 
   notification {
@@ -44,9 +47,9 @@ event "security-scan-binaries" {
   depends = ["upload-dev"]
   action "security-scan-binaries" {
     organization = "hashicorp"
-    repository = "crt-workflows-common"
-    workflow = "security-scan-binaries"
-    config = "security-scan.hcl"
+    repository   = "crt-workflows-common"
+    workflow     = "security-scan-binaries"
+    config       = "security-scan.hcl"
   }
 
   notification {
@@ -54,20 +57,55 @@ event "security-scan-binaries" {
   }
 }
 
+event "sign" {
+  depends = ["security-scan-binaries"]
+  action "sign" {
+    organization = "hashicorp"
+    repository   = "crt-workflows-common"
+    workflow     = "sign"
+  }
+
+  notification {
+    on = "fail"
+  }
+}
+
+event "verify" {
+  depends = ["sign"]
+  action "verify" {
+    organization = "hashicorp"
+    repository   = "crt-workflows-common"
+    workflow     = "verify"
+  }
+
+  notification {
+    on = "always"
+  }
+}
+
+event "fossa-scan" {
+  depends = ["verify"]
+  action "fossa-scan" {
+    organization = "hashicorp"
+    repository   = "crt-workflows-common"
+    workflow     = "fossa-scan"
+  }
+}
+
 ## These are promotion and post-publish events
 ## they should be added to the end of the file after the verify event stanza.
 
 event "trigger-staging" {
-// This event is dispatched by the bob trigger-promotion command
-// and is required - do not delete.
+  // This event is dispatched by the bob trigger-promotion command
+  // and is required - do not delete.
 }
 
 event "promote-staging" {
   depends = ["trigger-staging"]
   action "promote-staging" {
     organization = "hashicorp"
-    repository = "crt-workflows-common"
-    workflow = "promote-staging"
+    repository   = "crt-workflows-common"
+    workflow     = "promote-staging"
   }
 
   notification {
@@ -76,16 +114,16 @@ event "promote-staging" {
 }
 
 event "trigger-production" {
-// This event is dispatched by the bob trigger-promotion command
-// and is required - do not delete.
+  // This event is dispatched by the bob trigger-promotion command
+  // and is required - do not delete.
 }
 
 event "promote-production" {
   depends = ["trigger-production"]
   action "promote-production" {
     organization = "hashicorp"
-    repository = "crt-workflows-common"
-    workflow = "promote-production"
+    repository   = "crt-workflows-common"
+    workflow     = "promote-production"
   }
 
   notification {

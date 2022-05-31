@@ -1,6 +1,8 @@
 name: build
 
-on: [workflow_dispatch, push]
+on:
+  push:
+  workflow_dispatch:
 
 env:
   PKG_NAME: "nomad-device-nvidia"
@@ -47,6 +49,7 @@ jobs:
           product: ${{ env.PKG_NAME }}
           repositoryOwner: "hashicorp"
       - uses: actions/upload-artifact@v2
+        if: ${{ !env.ACT }}
         with:
           name: metadata.json
           path: ${{ steps.generate-metadata-file.outputs.filepath }}
@@ -58,10 +61,12 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        goos: [linux]
+        goos: ["linux"]
         goarch: ["amd64"]
       fail-fast: true
+
     name: Go ${{ needs.get-go-version.outputs.go-version }} ${{ matrix.goos }} ${{ matrix.goarch }} build
+
     steps:
       - uses: actions/checkout@v2
       - name: Setup go
@@ -73,10 +78,12 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          make build
-          mkdir out
-          zip -r -j out/${{ env.PKG_NAME }}_${{ needs.get-product-version.outputs.product-version }}_${{ matrix.goos }}_${{ matrix.goarch }}.zip bin/
+          make pkg/${{ matrix.goos }}_${{ matrix.goarch }}.zip
+          mv \
+            pkg/${{ matrix.goos }}_${{ matrix.goarch }}.zip \
+            ${{ env.PKG_NAME }}_${{ needs.get-product-version.outputs.product-version }}_${{ matrix.goos }}_${{ matrix.goarch }}.zip
       - uses: actions/upload-artifact@v2
+        if: ${{ !env.ACT }}
         with:
           name: ${{ env.PKG_NAME }}_${{ needs.get-product-version.outputs.product-version }}_${{ matrix.goos }}_${{ matrix.goarch }}.zip
-          path: out/${{ env.PKG_NAME }}_${{ needs.get-product-version.outputs.product-version }}_${{ matrix.goos }}_${{ matrix.goarch }}.zip
+          path: ${{ env.PKG_NAME }}_${{ needs.get-product-version.outputs.product-version }}_${{ matrix.goos }}_${{ matrix.goarch }}.zip
