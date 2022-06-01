@@ -6,7 +6,7 @@ import (
 	hclog "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
 	"github.com/hashicorp/nomad/plugins/device"
-	"github.com/stretchr/testify/require"
+	"github.com/shoenig/test/must"
 )
 
 type MockNvmlClient struct {
@@ -133,8 +133,8 @@ func TestReserve(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
 			actualReservation, actualError := c.Device.Reserve(c.RequestedIDs)
-			require.Equal(t, c.ExpectedReservation, actualReservation)
-			require.Equal(t, c.ExpectedError, actualError)
+			must.Eq(t, c.ExpectedReservation, actualReservation)
+			must.Eq(t, c.ExpectedError, actualError)
 		})
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/nomad/helper"
-	"github.com/stretchr/testify/require"
+	"github.com/shoenig/test/must"
 )
 
 type MockNVMLDriver struct {
@@ -194,13 +194,13 @@ func TestGetFingerprintDataFromNVML(t *testing.T) {
 	} {
 		cli := nvmlClient{driver: testCase.DriverConfiguration}
 		fingerprintData, err := cli.GetFingerprintData()
-		if testCase.ExpectedError && err == nil {
-			t.Errorf("case '%s' : expected Error, but didn't get one", testCase.Name)
+		if testCase.ExpectedError {
+			must.Error(t, err)
 		}
 		if !testCase.ExpectedError && err != nil {
-			t.Errorf("case '%s' : unexpected Error '%v'", testCase.Name, err)
+			must.NoError(t, err)
 		}
-		require.New(t).Equal(testCase.ExpectedResult, fingerprintData)
+		must.Eq(t, testCase.ExpectedResult, fingerprintData)
 	}
 }
 
@@ -388,12 +388,13 @@ func TestGetStatsDataFromNVML(t *testing.T) {
 	} {
 		cli := nvmlClient{driver: testCase.DriverConfiguration}
 		statsData, err := cli.GetStatsData()
-		if testCase.ExpectedError && err == nil {
-			t.Errorf("case '%s' : expected Error, but didn't get one", testCase.Name)
+
+		if testCase.ExpectedError {
+			must.Error(t, err)
 		}
 		if !testCase.ExpectedError && err != nil {
-			t.Errorf("case '%s' : unexpected Error '%v'", testCase.Name, err)
+			must.NoError(t, err)
 		}
-		require.New(t).Equal(testCase.ExpectedResult, statsData)
+		must.Eq(t, testCase.ExpectedResult, statsData)
 	}
 }

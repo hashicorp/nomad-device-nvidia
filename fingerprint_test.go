@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/nomad/helper"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/hashicorp/nomad/plugins/shared/structs"
-	"github.com/stretchr/testify/require"
+	"github.com/shoenig/test/must"
 )
 
 func TestIgnoreFingerprintedDevices(t *testing.T) {
@@ -200,7 +200,7 @@ func TestIgnoreFingerprintedDevices(t *testing.T) {
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
 			actualResult := ignoreFingerprintedDevices(testCase.DeviceData, testCase.IgnoredGPUIds)
-			require.New(t).Equal(testCase.ExpectedResult, actualResult)
+			must.Eq(t, testCase.ExpectedResult, actualResult)
 		})
 	}
 }
@@ -347,11 +347,10 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
 			actualResult := testCase.Device.fingerprintChanged(testCase.AllDevices)
-			req := require.New(t)
 			// check that function returns valid "updated / not updated" state
-			req.Equal(testCase.ExpectedResult, actualResult)
+			must.Eq(t, testCase.ExpectedResult, actualResult)
 			// check that function propely updates devices map
-			req.Equal(testCase.Device.devices, testCase.DeviceMapAfterMethodCall)
+			must.Eq(t, testCase.Device.devices, testCase.DeviceMapAfterMethodCall)
 		})
 	}
 }
@@ -446,7 +445,7 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
 			actualResult := attributesFromFingerprintDeviceData(testCase.FingerprintDeviceData)
-			require.Equal(t, testCase.ExpectedResult, actualResult)
+			must.Eq(t, testCase.ExpectedResult, actualResult)
 		})
 	}
 }
@@ -659,7 +658,7 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
 			actualResult := deviceGroupFromFingerprintData(testCase.GroupName, testCase.Devices, testCase.CommonAttributes)
-			require.New(t).Equal(testCase.ExpectedResult, actualResult)
+			must.Eq(t, testCase.ExpectedResult, actualResult)
 		})
 	}
 }
@@ -1172,7 +1171,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 			sort.Slice(testCase.ExpectedWriteToChannel.Devices, func(i, j int) bool {
 				return testCase.ExpectedWriteToChannel.Devices[i].Name < testCase.ExpectedWriteToChannel.Devices[j].Name
 			})
-			require.Equal(t, testCase.ExpectedWriteToChannel, actualResult)
+			must.Eq(t, testCase.ExpectedWriteToChannel, actualResult)
 		})
 	}
 }
@@ -1355,7 +1354,7 @@ func TestFingerprint(t *testing.T) {
 			go testCase.Device.fingerprint(ctx, outCh)
 			result := <-outCh
 			cancel()
-			require.New(t).Equal(result, testCase.ExpectedWriteToChannel)
+			must.Eq(t, result, testCase.ExpectedWriteToChannel)
 		})
 	}
 }
