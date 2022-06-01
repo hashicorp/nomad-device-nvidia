@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/nomad/helper"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/hashicorp/nomad/plugins/shared/structs"
-	"github.com/stretchr/testify/require"
+	"github.com/shoenig/test/must"
 )
 
 func TestFilterStatsByID(t *testing.T) {
@@ -411,7 +411,7 @@ func TestFilterStatsByID(t *testing.T) {
 		},
 	} {
 		actualResult := filterStatsByID(testCase.ProvidedStats, testCase.ProvidedIDs)
-		require.New(t).Equal(testCase.ExpectedResult, actualResult)
+		must.Eq(t, testCase.ExpectedResult, actualResult)
 	}
 }
 
@@ -1841,7 +1841,7 @@ func TestStatsForItem(t *testing.T) {
 		},
 	} {
 		actualResult := statsForItem(testCase.ItemStat, testCase.Timestamp)
-		require.New(t).Equal(testCase.ExpectedResult, actualResult)
+		must.Eq(t, testCase.ExpectedResult, actualResult)
 	}
 }
 
@@ -2142,7 +2142,7 @@ func TestStatsForGroup(t *testing.T) {
 		},
 	} {
 		actualResult := statsForGroup(testCase.GroupName, testCase.GroupStats, testCase.Timestamp)
-		require.New(t).Equal(testCase.ExpectedResult, actualResult)
+		must.Eq(t, testCase.ExpectedResult, actualResult)
 	}
 }
 
@@ -3036,6 +3036,6 @@ func TestWriteStatsToChannel(t *testing.T) {
 		sort.Slice(testCase.ExpectedWriteToChannel.Groups, func(i, j int) bool {
 			return testCase.ExpectedWriteToChannel.Groups[i].Name < testCase.ExpectedWriteToChannel.Groups[j].Name
 		})
-		require.New(t).Equal(testCase.ExpectedWriteToChannel, actualResult)
+		must.Eq(t, testCase.ExpectedWriteToChannel, actualResult)
 	}
 }
