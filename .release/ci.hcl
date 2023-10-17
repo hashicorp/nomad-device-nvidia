@@ -32,66 +32,17 @@ event "build" {
   }
 }
 
-event "upload-dev" {
+event "prepare" {
   depends = ["build"]
-  action "upload-dev" {
+  action "prepare" {
     organization = "hashicorp"
     repository   = "crt-workflows-common"
-    workflow     = "upload-dev"
+    workflow     = "prepare"
     depends      = ["build"]
   }
 
   notification {
     on = "fail"
-  }
-}
-
-event "security-scan-binaries" {
-  depends = ["upload-dev"]
-  action "security-scan-binaries" {
-    organization = "hashicorp"
-    repository   = "crt-workflows-common"
-    workflow     = "security-scan-binaries"
-    config       = "security-scan.hcl"
-  }
-
-  notification {
-    on = "fail"
-  }
-}
-
-event "sign" {
-  depends = ["security-scan-binaries"]
-  action "sign" {
-    organization = "hashicorp"
-    repository   = "crt-workflows-common"
-    workflow     = "sign"
-  }
-
-  notification {
-    on = "fail"
-  }
-}
-
-event "verify" {
-  depends = ["sign"]
-  action "verify" {
-    organization = "hashicorp"
-    repository   = "crt-workflows-common"
-    workflow     = "verify"
-  }
-
-  notification {
-    on = "always"
-  }
-}
-
-event "fossa-scan" {
-  depends = ["verify"]
-  action "fossa-scan" {
-    organization = "hashicorp"
-    repository   = "crt-workflows-common"
-    workflow     = "fossa-scan"
   }
 }
 
