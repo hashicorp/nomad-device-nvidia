@@ -12,13 +12,13 @@ import (
 )
 
 type MockNVMLDriver struct {
-	systemDriverCallSuccessful               bool
-	deviceCountCallSuccessful                bool
-	deviceInfoByIndexCallSuccessful          bool
-	deviceInfoAndStatusByIndexCallSuccessful bool
-	driverVersion                            string
-	devices                                  []*DeviceInfo
-	deviceStatus                             []*DeviceStatus
+	systemDriverCallSuccessful              bool
+	listDeviceUUIDsSuccessful               bool
+	deviceInfoByUUIDCallSuccessful          bool
+	deviceInfoAndStatusByUUIDCallSuccessful bool
+	driverVersion                           string
+	devices                                 []*DeviceInfo
+	deviceStatus                            []*DeviceStatus
 }
 
 func (m *MockNVMLDriver) Initialize() error {
@@ -36,31 +36,46 @@ func (m *MockNVMLDriver) SystemDriverVersion() (string, error) {
 	return m.driverVersion, nil
 }
 
-func (m *MockNVMLDriver) DeviceCount() (uint, error) {
-	if !m.deviceCountCallSuccessful {
-		return 0, errors.New("failed to get device length")
+func (m *MockNVMLDriver) ListDeviceUUIDs() ([]string, error) {
+	if !m.listDeviceUUIDsSuccessful {
+		return nil, errors.New("failed to get device length")
 	}
-	return uint(len(m.devices)), nil
+
+	allNvidiaGPUUUIDs := make([]string, len(m.devices))
+
+	for i, device := range m.devices {
+		allNvidiaGPUUUIDs[i] = device.UUID
+	}
+
+	return allNvidiaGPUUUIDs, nil
 }
 
-func (m *MockNVMLDriver) DeviceInfoByIndex(index uint) (*DeviceInfo, error) {
-	if index >= uint(len(m.devices)) {
-		return nil, errors.New("index is out of range")
+func (m *MockNVMLDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
+	if !m.deviceInfoByUUIDCallSuccessful {
+		return nil, errors.New("failed to get device info by UUID")
 	}
-	if !m.deviceInfoByIndexCallSuccessful {
-		return nil, errors.New("failed to get device info by index")
+
+	for _, device := range m.devices {
+		if uuid == device.UUID {
+			return device, nil
+		}
 	}
-	return m.devices[index], nil
+
+	return nil, errors.New("failed to get device handle")
 }
 
-func (m *MockNVMLDriver) DeviceInfoAndStatusByIndex(index uint) (*DeviceInfo, *DeviceStatus, error) {
-	if index >= uint(len(m.devices)) || index >= uint(len(m.deviceStatus)) {
-		return nil, nil, errors.New("index is out of range")
-	}
-	if !m.deviceInfoAndStatusByIndexCallSuccessful {
+func (m *MockNVMLDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *DeviceStatus, error) {
+	if !m.deviceInfoAndStatusByUUIDCallSuccessful {
 		return nil, nil, errors.New("failed to get device info and status by index")
 	}
-	return m.devices[index], m.deviceStatus[index], nil
+
+	for i, device := range m.devices {
+		if uuid == device.UUID {
+			return device, m.deviceStatus[i], nil
+		}
+	}
+
+	return nil, nil, errors.New("failed to get device handle")
 }
 
 func TestGetFingerprintDataFromNVML(t *testing.T) {
@@ -75,9 +90,9 @@ func TestGetFingerprintDataFromNVML(t *testing.T) {
 			ExpectedError:  true,
 			ExpectedResult: nil,
 			DriverConfiguration: &MockNVMLDriver{
-				systemDriverCallSuccessful:      false,
-				deviceCountCallSuccessful:       true,
-				deviceInfoByIndexCallSuccessful: true,
+				systemDriverCallSuccessful:     false,
+				listDeviceUUIDsSuccessful:      true,
+				deviceInfoByUUIDCallSuccessful: true,
 			},
 		},
 		{
@@ -85,19 +100,19 @@ func TestGetFingerprintDataFromNVML(t *testing.T) {
 			ExpectedError:  true,
 			ExpectedResult: nil,
 			DriverConfiguration: &MockNVMLDriver{
-				systemDriverCallSuccessful:      true,
-				deviceCountCallSuccessful:       false,
-				deviceInfoByIndexCallSuccessful: true,
+				systemDriverCallSuccessful:     true,
+				listDeviceUUIDsSuccessful:      false,
+				deviceInfoByUUIDCallSuccessful: true,
 			},
 		},
 		{
-			Name:           "fail on deviceInfoByIndexCall",
+			Name:           "fail on deviceInfoByUUIDCall",
 			ExpectedError:  true,
 			ExpectedResult: nil,
 			DriverConfiguration: &MockNVMLDriver{
-				systemDriverCallSuccessful:      true,
-				deviceCountCallSuccessful:       true,
-				deviceInfoByIndexCallSuccessful: false,
+				systemDriverCallSuccessful:     true,
+				listDeviceUUIDsSuccessful:      true,
+				deviceInfoByUUIDCallSuccessful: false,
 				devices: []*DeviceInfo{
 					{
 						UUID:               "UUID1",
@@ -161,10 +176,10 @@ func TestGetFingerprintDataFromNVML(t *testing.T) {
 				},
 			},
 			DriverConfiguration: &MockNVMLDriver{
-				systemDriverCallSuccessful:      true,
-				deviceCountCallSuccessful:       true,
-				deviceInfoByIndexCallSuccessful: true,
-				driverVersion:                   "driverVersion",
+				systemDriverCallSuccessful:     true,
+				listDeviceUUIDsSuccessful:      true,
+				deviceInfoByUUIDCallSuccessful: true,
+				driverVersion:                  "driverVersion",
 				devices: []*DeviceInfo{
 					{
 						UUID:               "UUID1",
@@ -215,24 +230,24 @@ func TestGetStatsDataFromNVML(t *testing.T) {
 		ExpectedResult      []*StatsData
 	}{
 		{
-			Name:           "fail on deviceCountCallSuccessful",
+			Name:           "fail on listDeviceUUIDsCallSuccessful",
 			ExpectedError:  true,
 			ExpectedResult: nil,
 			DriverConfiguration: &MockNVMLDriver{
-				systemDriverCallSuccessful:               true,
-				deviceCountCallSuccessful:                false,
-				deviceInfoByIndexCallSuccessful:          true,
-				deviceInfoAndStatusByIndexCallSuccessful: true,
+				systemDriverCallSuccessful:              true,
+				listDeviceUUIDsSuccessful:               false,
+				deviceInfoByUUIDCallSuccessful:          true,
+				deviceInfoAndStatusByUUIDCallSuccessful: true,
 			},
 		},
 		{
-			Name:           "fail on DeviceInfoAndStatusByIndex call",
+			Name:           "fail on DeviceInfoAndStatusByUUID call",
 			ExpectedError:  true,
 			ExpectedResult: nil,
 			DriverConfiguration: &MockNVMLDriver{
-				systemDriverCallSuccessful:               true,
-				deviceCountCallSuccessful:                true,
-				deviceInfoAndStatusByIndexCallSuccessful: false,
+				systemDriverCallSuccessful:              true,
+				listDeviceUUIDsSuccessful:               true,
+				deviceInfoAndStatusByUUIDCallSuccessful: false,
 				devices: []*DeviceInfo{
 					{
 						UUID:               "UUID1",
@@ -332,9 +347,9 @@ func TestGetStatsDataFromNVML(t *testing.T) {
 				},
 			},
 			DriverConfiguration: &MockNVMLDriver{
-				deviceCountCallSuccessful:                true,
-				deviceInfoByIndexCallSuccessful:          true,
-				deviceInfoAndStatusByIndexCallSuccessful: true,
+				listDeviceUUIDsSuccessful:               true,
+				deviceInfoByUUIDCallSuccessful:          true,
+				deviceInfoAndStatusByUUIDCallSuccessful: true,
 				devices: []*DeviceInfo{
 					{
 						UUID:               "UUID1",

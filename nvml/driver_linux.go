@@ -40,25 +40,69 @@ func (n *nvmlDriver) SystemDriverVersion() (string, error) {
 	return version, nil
 }
 
-// DeviceCount reports number of available GPU devices
-func (n *nvmlDriver) DeviceCount() (uint, error) {
+// List all compute device UUIDs in the system, includes MIG devices
+// but excludes their "parent".
+func (n *nvmlDriver) ListDeviceUUIDs() ([]string, error) {
 	count, code := nvml.DeviceGetCount()
 	if code != nvml.SUCCESS {
-		return 0, decode("failed to get device count", code)
+		return nil, decode("failed to get device count", code)
 	}
-	return uint(count), nil
+
+	var uuids []string
+	for i := 0; i < int(count); i++ {
+		device, code := nvml.DeviceGetHandleByIndex(int(i))
+		if code != nvml.SUCCESS {
+			return nil, decode("failed to get device handle", code)
+		}
+
+		// Get the device MIG mode, and if MIG is not enabled
+		// or the device doesn't support MIG at all (indicated
+		// by error code ERROR_NOT_SUPPORTED), then add the
+		// device UUID to the list and continue.
+		migMode, _, code := nvml.DeviceGetMigMode(device)
+		if code == nvml.ERROR_NOT_SUPPORTED || migMode == nvml.DEVICE_MIG_DISABLE {
+			uuid, code := nvml.DeviceGetUUID(device)
+			if code != nvml.SUCCESS {
+				return nil, decode("failed to get device %d uuid", code)
+			}
+
+			uuids = append(uuids, uuid)
+			continue
+		}
+		if code != nvml.SUCCESS {
+			return nil, decode("failed to get device MIG mode", code)
+		}
+
+		count, code = nvml.DeviceGetMaxMigDeviceCount(device)
+		if code != nvml.SUCCESS {
+			return nil, decode("failed to get device MIG device count", code)
+		}
+
+		for j := 0; j < int(count); j++ {
+			migDevice, code := nvml.DeviceGetMigDeviceHandleByIndex(device, int(j))
+			if code == nvml.ERROR_NOT_FOUND || code == nvml.ERROR_INVALID_ARGUMENT {
+				continue
+			}
+			if code != nvml.SUCCESS {
+				return nil, decode("failed to get device MIG device handle", code)
+			}
+
+			uuid, code := nvml.DeviceGetUUID(migDevice)
+			if code != nvml.SUCCESS {
+				return nil, decode(fmt.Sprintf("failed to get mig device uuid %d", j), code)
+			}
+			uuids = append(uuids, uuid)
+		}
+	}
+
+	return uuids, nil
 }
 
-// DeviceInfoByIndex returns DeviceInfo for index GPU in system device list.
-func (n *nvmlDriver) DeviceInfoByIndex(index uint) (*DeviceInfo, error) {
-	device, code := nvml.DeviceGetHandleByIndex(int(index))
+// DeviceInfoByUUID returns DeviceInfo for the given GPU's UUID.
+func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
+	device, code := nvml.DeviceGetHandleByUUID(uuid)
 	if code != nvml.SUCCESS {
-		return nil, decode("failed to get device info", code)
-	}
-
-	uuid, code := nvml.DeviceGetUUID(device)
-	if code != nvml.SUCCESS {
-		return nil, decode("failed to get device uuid", code)
+		return nil, decode("failed to get device handle", code)
 	}
 
 	name, code := nvml.Device.GetName(device)
@@ -159,14 +203,14 @@ func buildID(id [32]int8) string {
 	return string(b)
 }
 
-// DeviceInfoAndStatusByIndex returns DeviceInfo and DeviceStatus for index GPU in system device list.
-func (n *nvmlDriver) DeviceInfoAndStatusByIndex(index uint) (*DeviceInfo, *DeviceStatus, error) {
-	di, err := n.DeviceInfoByIndex(index)
+// DeviceInfoAndStatusByUUID returns DeviceInfo and DeviceStatus for index GPU in system device list.
+func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *DeviceStatus, error) {
+	di, err := n.DeviceInfoByUUID(uuid)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	device, code := nvml.DeviceGetHandleByIndex(int(index))
+	device, code := nvml.DeviceGetHandleByUUID(uuid)
 	if code != nvml.SUCCESS {
 		return nil, nil, decode("failed to get device info", code)
 	}
