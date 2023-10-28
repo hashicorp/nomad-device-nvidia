@@ -103,17 +103,17 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 		return nil, fmt.Errorf("nvidia nvml SystemDriverVersion() error: %v\n", err)
 	}
 
-	numDevices, err := c.driver.DeviceCount()
+	deviceUUIDs, err := c.driver.ListDeviceUUIDs()
 	if err != nil {
-		return nil, fmt.Errorf("nvidia nvml DeviceCount() error: %v\n", err)
+		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %v\n", err)
 	}
 
-	allNvidiaGPUResources := make([]*FingerprintDeviceData, numDevices)
+	allNvidiaGPUResources := make([]*FingerprintDeviceData, len(deviceUUIDs))
 
-	for i := 0; i < int(numDevices); i++ {
-		deviceInfo, err := c.driver.DeviceInfoByIndex(uint(i))
+	for i, element := range deviceUUIDs {
+		deviceInfo, err := c.driver.DeviceInfoByUUID(element)
 		if err != nil {
-			return nil, fmt.Errorf("nvidia nvml DeviceInfoByIndex() error: %v\n", err)
+			return nil, fmt.Errorf("nvidia nvml DeviceInfoByUUID() error: %v\n", err)
 		}
 
 		allNvidiaGPUResources[i] = &FingerprintDeviceData{
@@ -159,17 +159,17 @@ func (c *nvmlClient) GetStatsData() ([]*StatsData, error) {
 	// NewNvmlClient
 	// because this method handles initialization of NVML library
 
-	numDevices, err := c.driver.DeviceCount()
+	deviceUUIDs, err := c.driver.ListDeviceUUIDs()
 	if err != nil {
-		return nil, fmt.Errorf("nvidia nvml DeviceCount() error: %v\n", err)
+		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %v\n", err)
 	}
 
-	allNvidiaGPUStats := make([]*StatsData, numDevices)
+	allNvidiaGPUStats := make([]*StatsData, len(deviceUUIDs))
 
-	for i := 0; i < int(numDevices); i++ {
-		deviceInfo, deviceStatus, err := c.driver.DeviceInfoAndStatusByIndex(uint(i))
+	for i, element := range deviceUUIDs {
+		deviceInfo, deviceStatus, err := c.driver.DeviceInfoAndStatusByUUID(element)
 		if err != nil {
-			return nil, fmt.Errorf("nvidia nvml DeviceInfoAndStatusByIndex() error: %v\n", err)
+			return nil, fmt.Errorf("nvidia nvml DeviceInfoAndStatusByUUID() error: %v\n", err)
 		}
 
 		allNvidiaGPUStats[i] = &StatsData{

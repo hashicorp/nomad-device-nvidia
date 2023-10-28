@@ -19,14 +19,14 @@ type NvmlDriver interface {
 	Initialize() error
 	Shutdown() error
 	SystemDriverVersion() (string, error)
-	DeviceCount() (uint, error)
-	DeviceInfoByIndex(uint) (*DeviceInfo, error)
-	DeviceInfoAndStatusByIndex(uint) (*DeviceInfo, *DeviceStatus, error)
+	ListDeviceUUIDs() ([]string, error)
+	DeviceInfoByUUID(string) (*DeviceInfo, error)
+	DeviceInfoAndStatusByUUID(string) (*DeviceInfo, *DeviceStatus, error)
 }
 
 // DeviceInfo represents nvml device data
-// this struct is returned by NvmlDriver DeviceInfoByIndex and
-// DeviceInfoAndStatusByIndex methods
+// this struct is returned by NvmlDriver DeviceInfoByUUID and
+// DeviceInfoAndStatusByUUID methods
 type DeviceInfo struct {
 	// The following fields are guaranteed to be retrieved from nvml
 	UUID            string
@@ -46,7 +46,7 @@ type DeviceInfo struct {
 }
 
 // DeviceStatus represents nvml device status
-// this struct is returned by NvmlDriver DeviceInfoAndStatusByIndex method
+// this struct is returned by NvmlDriver DeviceInfoAndStatusByUUID method
 type DeviceStatus struct {
 	// The following fields can be nil after call to nvml, because nvml was
 	// not able to retrieve this fields for specific nvidia card

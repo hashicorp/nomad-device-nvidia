@@ -8,7 +8,7 @@ replace (
 )
 
 require (
-	github.com/NVIDIA/go-nvml v0.11.1-0
+	github.com/NVIDIA/go-nvml v0.12.0-1.0.20231020145430-e06766c5e74f
 	github.com/hashicorp/go-hclog v1.2.0
 	github.com/hashicorp/nomad v1.3.1
 	github.com/shoenig/test v0.2.5
@@ -90,7 +90,7 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.12 // indirect
-	github.com/stretchr/testify v1.7.1 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/tklauser/numcpus v0.3.0 // indirect
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
@@ -110,5 +110,5 @@ require (
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
