@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
-	"github.com/hashicorp/nomad/helper"
+	"github.com/hashicorp/nomad/helper/pointer"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/hashicorp/nomad/plugins/shared/structs"
 )
@@ -138,7 +138,7 @@ func (d *NvidiaDevice) writeStatsToChannel(stats chan<- *device.StatsResponse, t
 }
 
 func newNotAvailableDeviceStats(unit, desc string) *structs.StatValue {
-	return &structs.StatValue{Unit: unit, Desc: desc, StringVal: helper.StringToPtr(notAvailable)}
+	return &structs.StatValue{Unit: unit, Desc: desc, StringVal: pointer.Of(notAvailable)}
 }
 
 // statsForGroup is a helper function that populates device.DeviceGroupStats
@@ -182,7 +182,7 @@ func statsForItem(statsItem *nvml.StatsData, timestamp time.Time) *device.Device
 		powerUsageStat = &structs.StatValue{
 			Unit:              PowerUsageUnit,
 			Desc:              PowerUsageDesc,
-			IntNumeratorVal:   helper.Int64ToPtr(int64(*statsItem.PowerUsageW)),
+			IntNumeratorVal:   pointer.Of(int64(*statsItem.PowerUsageW)),
 			IntDenominatorVal: uintToInt64Ptr(statsItem.PowerW),
 		}
 	}
