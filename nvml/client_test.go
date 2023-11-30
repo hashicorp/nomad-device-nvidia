@@ -5,9 +5,9 @@ package nvml
 
 import (
 	"errors"
-	"github.com/hashicorp/nomad/helper/pointer"
 	"testing"
 
+	"github.com/hashicorp/nomad/helper/pointer"
 	"github.com/shoenig/test/must"
 )
 
