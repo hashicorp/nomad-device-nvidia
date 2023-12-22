@@ -110,7 +110,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 		return nil, decode("failed to get device name", code)
 	}
 
-	memory, code := nvml.DeviceGetMemoryInfo(device)
+	memory, code := nvml.DeviceGetMemoryInfo_v2(device)
 	if code != nvml.SUCCESS {
 		return nil, decode("failed to get device memory info", code)
 	}
@@ -129,7 +129,11 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 
 	power, code := nvml.DeviceGetPowerUsage(device)
 	if code != nvml.SUCCESS {
-		return nil, decode("failed to get device power info", code)
+		if code == nvml.ERROR_NOT_SUPPORTED {
+			power = 0
+		} else {
+			return nil, decode("failed to get device power info", code)
+		}
 	}
 	powerU := uint(power) / 1000
 
@@ -146,12 +150,20 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 
 	linkWidth, code := nvml.DeviceGetMaxPcieLinkWidth(device)
 	if code != nvml.SUCCESS {
-		return nil, decode("failed to get pcie link width", code)
+		if code == nvml.ERROR_NOT_SUPPORTED {
+			linkWidth = 0
+		} else {
+			return nil, decode("failed to get pcie link width", code)
+		}
 	}
 
 	linkGeneration, code := nvml.DeviceGetMaxPcieLinkGeneration(device)
 	if code != nvml.SUCCESS {
-		return nil, decode("failed to get pcie link generation", code)
+		if code == nvml.ERROR_NOT_SUPPORTED {
+			linkGeneration = 0
+		} else {
+			return nil, decode("failed to get pcie link generation", code)
+		}
 	}
 
 	// https://en.wikipedia.org/wiki/PCI_Express
@@ -207,7 +219,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 }
 
 func buildID(id [32]int8) string {
-	b := make([]byte, len(id), len(id))
+	b := make([]byte, len(id))
 	for i := 0; i < len(id); i++ {
 		b[i] = byte(id[i])
 	}
@@ -226,7 +238,7 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 		return nil, nil, decode("failed to get device info", code)
 	}
 
-	mem, code := nvml.DeviceGetMemoryInfo(device)
+	mem, code := nvml.DeviceGetMemoryInfo_v2(device)
 	if code != nvml.SUCCESS {
 		return nil, nil, decode("failed to get device memory utilization", code)
 	}
@@ -274,26 +286,46 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 
 		temp, code := nvml.DeviceGetTemperature(device, nvml.TEMPERATURE_GPU)
 		if code != nvml.SUCCESS {
-			return nil, nil, decode("failed to get device temperature", code)
+			if code == nvml.ERROR_NOT_SUPPORTED {
+				temp = 0
+			} else {
+				return nil, nil, decode("failed to get device temperature", code)
+			}
 		}
 		tempU = uint(temp)
 
 		power, code := nvml.DeviceGetPowerUsage(device)
 		if code != nvml.SUCCESS {
-			return nil, nil, decode("failed to get device power usage", code)
+			if code == nvml.ERROR_NOT_SUPPORTED {
+				power = 0
+			} else {
+				return nil, nil, decode("failed to get device power usage", code)
+			}
 		}
 		powerU = uint(power)
 	}
 
-	// note: ecc memory error stats removed; couldn't figure out the API
+	ecc, code := nvml.DeviceGetDetailedEccErrors(device, nvml.MEMORY_ERROR_TYPE_CORRECTED, nvml.VOLATILE_ECC)
+	if code != nvml.SUCCESS {
+		if code == nvml.ERROR_NOT_SUPPORTED {
+			ecc = nvml.EccErrorCounts{}
+		} else {
+			return nil, nil, decode("failed to get device ecc error counts", code)
+		}
+	}
+
 	return di, &DeviceStatus{
-		TemperatureC:       &tempU,
-		GPUUtilization:     &utzGPU,
-		MemoryUtilization:  &utzMem,
-		EncoderUtilization: &utzEncU,
-		DecoderUtilization: &utzDecU,
-		UsedMemoryMiB:      &memUsedU,
-		PowerUsageW:        &powerU,
-		BAR1UsedMiB:        &barUsed,
+		TemperatureC:          &tempU,
+		GPUUtilization:        &utzGPU,
+		MemoryUtilization:     &utzMem,
+		EncoderUtilization:    &utzEncU,
+		DecoderUtilization:    &utzDecU,
+		UsedMemoryMiB:         &memUsedU,
+		PowerUsageW:           &powerU,
+		BAR1UsedMiB:           &barUsed,
+		ECCErrorsDevice:       &ecc.DeviceMemory,
+		ECCErrorsL1Cache:      &ecc.L1Cache,
+		ECCErrorsL2Cache:      &ecc.L2Cache,
+		ECCErrorsRegisterFile: &ecc.RegisterFile,
 	}, nil
 }
