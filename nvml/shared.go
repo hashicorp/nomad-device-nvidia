@@ -50,15 +50,16 @@ type DeviceInfo struct {
 type DeviceStatus struct {
 	// The following fields can be nil after call to nvml, because nvml was
 	// not able to retrieve this fields for specific nvidia card
-	PowerUsageW        *uint
-	TemperatureC       *uint
-	GPUUtilization     *uint // %
-	MemoryUtilization  *uint // %
-	EncoderUtilization *uint // %
-	DecoderUtilization *uint // %
-	BAR1UsedMiB        *uint64
-	UsedMemoryMiB      *uint64
-	ECCErrorsL1Cache   *uint64
-	ECCErrorsL2Cache   *uint64
-	ECCErrorsDevice    *uint64
+	PowerUsageW           *uint
+	TemperatureC          *uint
+	GPUUtilization        *uint // %
+	MemoryUtilization     *uint // %
+	EncoderUtilization    *uint // %
+	DecoderUtilization    *uint // %
+	BAR1UsedMiB           *uint64
+	UsedMemoryMiB         *uint64
+	ECCErrorsL1Cache      *uint64
+	ECCErrorsL2Cache      *uint64
+	ECCErrorsDevice       *uint64
+	ECCErrorsRegisterFile *uint64
 }

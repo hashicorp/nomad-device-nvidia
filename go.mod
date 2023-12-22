@@ -12,7 +12,7 @@ require (
 	github.com/NVIDIA/go-nvml v0.12.4-0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/nomad v1.8.3
-	github.com/shoenig/test v1.8.2
+	github.com/shoenig/test v1.9.0
 )
 
 require (
@@ -133,3 +133,4 @@ require (
 	kernel.org/pub/linux/libs/security/libcap/psx v1.2.70 // indirect
 	oss.indeed.com/go/libtime v1.6.0 // indirect
 )
+
