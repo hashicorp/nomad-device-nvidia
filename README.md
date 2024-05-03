@@ -14,6 +14,9 @@ RPC. GPUs can be excluded from fingerprinting by setting the `ignored_gpu_ids`
 field (see below). Plugin sends statistics for fingerprinted devices every
 `stats_period` period.
 
+The plugin will be able to distinguish whether the GPU has [`Multi-Instance GPU (MIG)`](https://www.nvidia.com/en-us/technologies/multi-instance-gpu/) enabled.
+When enabled all instances will be fingerprinted as individual GPUs that can be addressed accordingly.
+
 ## Config
 
 The plugin is configured in the Nomad client's
