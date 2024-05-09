@@ -31,6 +31,7 @@ pkg/%/nomad-device-nvidia: ## Build nomad-device-nvidia for GOOS_GOARCH, e.g. pk
 .PRECIOUS: pkg/%/nomad-device-nvidia
 pkg/%.zip: pkg/%/nomad-device-nvidia ## Build and zip nomad-device-nvidia for GOOS_GOARCH, e.g. pkg/linux_amd64.zip
 	@echo "==> Packaging for $@..."
+	@cp LICENSE $(dir $<)LICENSE.txt
 	zip -j $@ $(dir $<)*
 
 .PHONY: dev
