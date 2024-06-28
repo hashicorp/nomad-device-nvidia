@@ -152,7 +152,7 @@ func (n *nvmlDriver) DeviceInfoByIndex(index uint) (*DeviceInfo, error) {
 }
 
 func buildID(id [32]int8) string {
-	b := make([]byte, len(id), len(id))
+	b := make([]byte, len(id))
 	for i := 0; i < len(id); i++ {
 		b[i] = byte(id[i])
 	}
