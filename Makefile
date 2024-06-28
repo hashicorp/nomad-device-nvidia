@@ -23,6 +23,12 @@ test:
 	@echo "==> Running tests ..."
 	go test -v -race ./...
 
+.PHONY: lint
+lint:
+	@echo "==> Lint nvidia driver ..."
+	go vet ./...
+	golangci-lint --timeout=5m run
+
 .PHONY: hack
 hack: compile
 hack:
