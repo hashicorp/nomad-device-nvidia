@@ -36,15 +36,15 @@ hack:
 	sudo nomad agent -dev -plugin-dir=$(NOMAD_PLUGIN_DIR)
 
 # CRT release compilation
-pkg/%/nomad-device-nvidia: GO_OUT ?= $@
-pkg/%/nomad-device-nvidia:
+dist/%/nomad-device-nvidia: GO_OUT ?= $@
+dist/%/nomad-device-nvidia:
 	@echo "==> RELEASE BUILD of $@ ..."
 	GOOS=linux GOARCH=$(lastword $(subst _, ,$*)) \
 	go build -trimpath -o $(GO_OUT) cmd/main.go
 
 # CRT release packaging (zip only)
-.PRECIOUS: pkg/%/nomad-device-nvidia
-pkg/%.zip: pkg/%/nomad-device-nvidia
+.PRECIOUS: dist/%/nomad-device-nvidia
+dist/%.zip: dist/%/nomad-device-nvidia
 	@echo "==> RELEASE PACKAGING of $@ ..."
 	@cp LICENSE $(dir $<)LICENSE.txt
 	zip -j $@ $(dir $<)*
