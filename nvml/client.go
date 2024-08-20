@@ -4,7 +4,9 @@
 package nvml
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 )
 
 // DeviceData represents common fields for Nvidia device
@@ -95,8 +97,7 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 	*/
 
 	// Assumed that this method is called with receiver retrieved from
-	// NewNvmlClient
-	// because this method handles initialization of NVML library
+	// NewNvmlClient because this method handles initialization of NVML library
 
 	driverVersion, err := c.driver.SystemDriverVersion()
 	if err != nil {
@@ -108,15 +109,20 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %v\n", err)
 	}
 
-	allNvidiaGPUResources := make([]*FingerprintDeviceData, len(deviceUUIDs))
+	allNvidiaGPUResources := make([]*FingerprintDeviceData, 0, len(deviceUUIDs))
 
-	for i, element := range deviceUUIDs {
-		deviceInfo, err := c.driver.DeviceInfoByUUID(element)
+	for uuid, mode := range deviceUUIDs {
+		// do not care about phsyical parents of MIGs
+		if mode == parent {
+			continue
+		}
+
+		deviceInfo, err := c.driver.DeviceInfoByUUID(uuid)
 		if err != nil {
 			return nil, fmt.Errorf("nvidia nvml DeviceInfoByUUID() error: %v\n", err)
 		}
 
-		allNvidiaGPUResources[i] = &FingerprintDeviceData{
+		allNvidiaGPUResources = append(allNvidiaGPUResources, &FingerprintDeviceData{
 			DeviceData: &DeviceData{
 				DeviceName: deviceInfo.Name,
 				UUID:       deviceInfo.UUID,
@@ -130,8 +136,13 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 			DisplayState:       deviceInfo.DisplayState,
 			PersistenceMode:    deviceInfo.PersistenceMode,
 			PCIBusID:           deviceInfo.PCIBusID,
-		}
+		})
+
+		slices.SortFunc(allNvidiaGPUResources, func(a, b *FingerprintDeviceData) int {
+			return cmp.Compare(a.DeviceData.UUID, b.DeviceData.UUID)
+		})
 	}
+
 	return &FingerprintData{
 		Devices:       allNvidiaGPUResources,
 		DriverVersion: driverVersion,
@@ -156,23 +167,32 @@ func (c *nvmlClient) GetStatsData() ([]*StatsData, error) {
 	*/
 
 	// Assumed that this method is called with receiver retrieved from
-	// NewNvmlClient
-	// because this method handles initialization of NVML library
+	// NewNvmlClient because this method handles initialization of NVML library
 
 	deviceUUIDs, err := c.driver.ListDeviceUUIDs()
 	if err != nil {
 		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %v\n", err)
 	}
 
-	allNvidiaGPUStats := make([]*StatsData, len(deviceUUIDs))
+	allNvidiaGPUStats := make([]*StatsData, 0, len(deviceUUIDs))
 
-	for i, element := range deviceUUIDs {
-		deviceInfo, deviceStatus, err := c.driver.DeviceInfoAndStatusByUUID(element)
+	for uuid, mode := range deviceUUIDs {
+
+		// A30/A100 MIG devices have no stats.
+		//
+		// https://docs.nvidia.com/datacenter/tesla/mig-user-guide/#telemetry
+		//
+		// Is this fixed on H100 or later? Maybe?
+		if mode == mig || mode == parent {
+			continue
+		}
+
+		deviceInfo, deviceStatus, err := c.driver.DeviceInfoAndStatusByUUID(uuid)
 		if err != nil {
 			return nil, fmt.Errorf("nvidia nvml DeviceInfoAndStatusByUUID() error: %v\n", err)
 		}
 
-		allNvidiaGPUStats[i] = &StatsData{
+		allNvidiaGPUStats = append(allNvidiaGPUStats, &StatsData{
 			DeviceData: &DeviceData{
 				DeviceName: deviceInfo.Name,
 				UUID:       deviceInfo.UUID,
@@ -191,7 +211,11 @@ func (c *nvmlClient) GetStatsData() ([]*StatsData, error) {
 			ECCErrorsL1Cache:   deviceStatus.ECCErrorsL1Cache,
 			ECCErrorsL2Cache:   deviceStatus.ECCErrorsL2Cache,
 			ECCErrorsDevice:    deviceStatus.ECCErrorsDevice,
-		}
+		})
+
+		slices.SortFunc(allNvidiaGPUStats, func(a, b *StatsData) int {
+			return cmp.Compare(a.DeviceData.UUID, b.DeviceData.UUID)
+		})
 	}
 	return allNvidiaGPUStats, nil
 }

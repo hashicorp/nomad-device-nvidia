@@ -10,6 +10,14 @@ var (
 	UnavailableLib = errors.New("could not load NVML library")
 )
 
+type mode int
+
+const (
+	normal mode = iota
+	parent
+	mig
+)
+
 // nvmlDriver implements NvmlDriver
 // Users are required to call Initialize method before using any other methods
 type nvmlDriver struct{}
@@ -19,7 +27,7 @@ type NvmlDriver interface {
 	Initialize() error
 	Shutdown() error
 	SystemDriverVersion() (string, error)
-	ListDeviceUUIDs() ([]string, error)
+	ListDeviceUUIDs() (map[string]mode, error)
 	DeviceInfoByUUID(string) (*DeviceInfo, error)
 	DeviceInfoAndStatusByUUID(string) (*DeviceInfo, *DeviceStatus, error)
 }

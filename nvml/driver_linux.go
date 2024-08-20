@@ -40,15 +40,17 @@ func (n *nvmlDriver) SystemDriverVersion() (string, error) {
 	return version, nil
 }
 
-// List all compute device UUIDs in the system, includes MIG devices
-// but excludes their "parent".
-func (n *nvmlDriver) ListDeviceUUIDs() ([]string, error) {
+// List all compute device UUIDs in the system.
+// Includes all instances, including normal GPUs, MIGs, and their physical parents.
+// Each UUID is associated with a mode indication which type it is.
+func (n *nvmlDriver) ListDeviceUUIDs() (map[string]mode, error) {
 	count, code := nvml.DeviceGetCount()
 	if code != nvml.SUCCESS {
 		return nil, decode("failed to get device count", code)
 	}
 
-	var uuids []string
+	uuids := make(map[string]mode)
+
 	for i := 0; i < int(count); i++ {
 		device, code := nvml.DeviceGetHandleByIndex(int(i))
 		if code != nvml.SUCCESS {
@@ -66,7 +68,7 @@ func (n *nvmlDriver) ListDeviceUUIDs() ([]string, error) {
 				return nil, decode("failed to get device %d uuid", code)
 			}
 
-			uuids = append(uuids, uuid)
+			uuids[uuid] = normal
 			continue
 		}
 		if code != nvml.SUCCESS {
@@ -76,6 +78,11 @@ func (n *nvmlDriver) ListDeviceUUIDs() ([]string, error) {
 		migCount, code := nvml.DeviceGetMaxMigDeviceCount(device)
 		if code != nvml.SUCCESS {
 			return nil, decode("failed to get device MIG device count", code)
+		}
+
+		uuid, code := nvml.DeviceGetUUID(device)
+		if code == nvml.SUCCESS {
+			uuids[uuid] = parent
 		}
 
 		for j := 0; j < int(migCount); j++ {
@@ -91,7 +98,7 @@ func (n *nvmlDriver) ListDeviceUUIDs() ([]string, error) {
 			if code != nvml.SUCCESS {
 				return nil, decode(fmt.Sprintf("failed to get mig device uuid %d", j), code)
 			}
-			uuids = append(uuids, uuid)
+			uuids[uuid] = mig
 		}
 	}
 
@@ -110,7 +117,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 		return nil, decode("failed to get device name", code)
 	}
 
-	memory, code := nvml.DeviceGetMemoryInfo_v2(device)
+	memory, code := nvml.DeviceGetMemoryInfo(device)
 	if code != nvml.SUCCESS {
 		return nil, decode("failed to get device memory info", code)
 	}
@@ -238,7 +245,7 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 		return nil, nil, decode("failed to get device info", code)
 	}
 
-	mem, code := nvml.DeviceGetMemoryInfo_v2(device)
+	mem, code := nvml.DeviceGetMemoryInfo(device)
 	if code != nvml.SUCCESS {
 		return nil, nil, decode("failed to get device memory utilization", code)
 	}
