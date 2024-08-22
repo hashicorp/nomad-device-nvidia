@@ -105,6 +105,10 @@ func (n *nvmlDriver) ListDeviceUUIDs() (map[string]mode, error) {
 	return uuids, nil
 }
 
+func bytesToMegabytes(size uint64) uint64 {
+	return size / (1 << 20)
+}
+
 // DeviceInfoByUUID returns DeviceInfo for the given GPU's UUID.
 func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 	device, code := nvml.DeviceGetHandleByUUID(uuid)
@@ -121,7 +125,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 	if code != nvml.SUCCESS {
 		return nil, decode("failed to get device memory info", code)
 	}
-	memoryTotal := memory.Total / (1 << 20)
+	memoryTotal := bytesToMegabytes(memory.Total)
 
 	parentDevice, code := nvml.DeviceGetDeviceHandleFromMigDeviceHandle(device)
 	if code == nvml.ERROR_NOT_FOUND || code == nvml.ERROR_INVALID_ARGUMENT {
@@ -148,7 +152,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 	if code != nvml.SUCCESS {
 		return nil, decode("failed to get device bar 1 memory info", code)
 	}
-	bar1total := bar1.Bar1Total / (1 << 20)
+	bar1total := bytesToMegabytes(bar1.Bar1Total)
 
 	pci, code := nvml.Device.GetPciInfo(device)
 	if code != nvml.SUCCESS {
@@ -249,13 +253,13 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 	if code != nvml.SUCCESS {
 		return nil, nil, decode("failed to get device memory utilization", code)
 	}
-	memUsedU := mem.Used / (1 << 20)
+	memUsedU := bytesToMegabytes(mem.Used)
 
 	bar, code := nvml.DeviceGetBAR1MemoryInfo(device)
 	if code != nvml.SUCCESS {
 		return nil, nil, decode("failed to get device bar1 memory info", code)
 	}
-	barUsed := bar.Bar1Used / (1 << 20)
+	barUsed := bytesToMegabytes(bar.Bar1Used)
 
 	isMig := false
 	_, code = nvml.DeviceGetDeviceHandleFromMigDeviceHandle(device)
