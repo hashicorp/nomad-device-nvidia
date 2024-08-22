@@ -40,25 +40,80 @@ func (n *nvmlDriver) SystemDriverVersion() (string, error) {
 	return version, nil
 }
 
-// DeviceCount reports number of available GPU devices
-func (n *nvmlDriver) DeviceCount() (uint, error) {
+// List all compute device UUIDs in the system.
+// Includes all instances, including normal GPUs, MIGs, and their physical parents.
+// Each UUID is associated with a mode indication which type it is.
+func (n *nvmlDriver) ListDeviceUUIDs() (map[string]mode, error) {
 	count, code := nvml.DeviceGetCount()
 	if code != nvml.SUCCESS {
-		return 0, decode("failed to get device count", code)
+		return nil, decode("failed to get device count", code)
 	}
-	return uint(count), nil
+
+	uuids := make(map[string]mode)
+
+	for i := 0; i < int(count); i++ {
+		device, code := nvml.DeviceGetHandleByIndex(int(i))
+		if code != nvml.SUCCESS {
+			return nil, decode(fmt.Sprintf("failed to get device handle %d/%d", i, count), code)
+		}
+
+		// Get the device MIG mode, and if MIG is not enabled
+		// or the device doesn't support MIG at all (indicated
+		// by error code ERROR_NOT_SUPPORTED), then add the
+		// device UUID to the list and continue.
+		migMode, _, code := nvml.DeviceGetMigMode(device)
+		if code == nvml.ERROR_NOT_SUPPORTED || migMode == nvml.DEVICE_MIG_DISABLE {
+			uuid, code := nvml.DeviceGetUUID(device)
+			if code != nvml.SUCCESS {
+				return nil, decode("failed to get device %d uuid", code)
+			}
+
+			uuids[uuid] = normal
+			continue
+		}
+		if code != nvml.SUCCESS {
+			return nil, decode("failed to get device MIG mode", code)
+		}
+
+		migCount, code := nvml.DeviceGetMaxMigDeviceCount(device)
+		if code != nvml.SUCCESS {
+			return nil, decode("failed to get device MIG device count", code)
+		}
+
+		uuid, code := nvml.DeviceGetUUID(device)
+		if code == nvml.SUCCESS {
+			uuids[uuid] = parent
+		}
+
+		for j := 0; j < int(migCount); j++ {
+			migDevice, code := nvml.DeviceGetMigDeviceHandleByIndex(device, int(j))
+			if code == nvml.ERROR_NOT_FOUND || code == nvml.ERROR_INVALID_ARGUMENT {
+				continue
+			}
+			if code != nvml.SUCCESS {
+				return nil, decode("failed to get device MIG device handle", code)
+			}
+
+			uuid, code := nvml.DeviceGetUUID(migDevice)
+			if code != nvml.SUCCESS {
+				return nil, decode(fmt.Sprintf("failed to get mig device uuid %d", j), code)
+			}
+			uuids[uuid] = mig
+		}
+	}
+
+	return uuids, nil
 }
 
-// DeviceInfoByIndex returns DeviceInfo for index GPU in system device list.
-func (n *nvmlDriver) DeviceInfoByIndex(index uint) (*DeviceInfo, error) {
-	device, code := nvml.DeviceGetHandleByIndex(int(index))
-	if code != nvml.SUCCESS {
-		return nil, decode("failed to get device info", code)
-	}
+func bytesToMegabytes(size uint64) uint64 {
+	return size / (1 << 20)
+}
 
-	uuid, code := nvml.DeviceGetUUID(device)
+// DeviceInfoByUUID returns DeviceInfo for the given GPU's UUID.
+func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
+	device, code := nvml.DeviceGetHandleByUUID(uuid)
 	if code != nvml.SUCCESS {
-		return nil, decode("failed to get device uuid", code)
+		return nil, decode("failed to get device handle", code)
 	}
 
 	name, code := nvml.Device.GetName(device)
@@ -70,11 +125,26 @@ func (n *nvmlDriver) DeviceInfoByIndex(index uint) (*DeviceInfo, error) {
 	if code != nvml.SUCCESS {
 		return nil, decode("failed to get device memory info", code)
 	}
-	memoryTotal := memory.Total / (1 << 20)
+	memoryTotal := bytesToMegabytes(memory.Total)
+
+	parentDevice, code := nvml.DeviceGetDeviceHandleFromMigDeviceHandle(device)
+	if code == nvml.ERROR_NOT_FOUND || code == nvml.ERROR_INVALID_ARGUMENT {
+		// Device is not a MIG device, so nothing to do.
+	} else if code != nvml.SUCCESS {
+		return nil, decode("failed to get device parent device handle", code)
+	} else {
+		// Device is a MIG device, and get the auxilary properties (such as PCIE
+		// bandwidth) from the parent device.
+		device = parentDevice
+	}
 
 	power, code := nvml.DeviceGetPowerUsage(device)
 	if code != nvml.SUCCESS {
-		return nil, decode("failed to get device power info", code)
+		if code == nvml.ERROR_NOT_SUPPORTED {
+			power = 0
+		} else {
+			return nil, decode("failed to get device power info", code)
+		}
 	}
 	powerU := uint(power) / 1000
 
@@ -82,7 +152,7 @@ func (n *nvmlDriver) DeviceInfoByIndex(index uint) (*DeviceInfo, error) {
 	if code != nvml.SUCCESS {
 		return nil, decode("failed to get device bar 1 memory info", code)
 	}
-	bar1total := bar1.Bar1Total / (1 << 20)
+	bar1total := bytesToMegabytes(bar1.Bar1Total)
 
 	pci, code := nvml.Device.GetPciInfo(device)
 	if code != nvml.SUCCESS {
@@ -91,12 +161,20 @@ func (n *nvmlDriver) DeviceInfoByIndex(index uint) (*DeviceInfo, error) {
 
 	linkWidth, code := nvml.DeviceGetMaxPcieLinkWidth(device)
 	if code != nvml.SUCCESS {
-		return nil, decode("failed to get pcie link width", code)
+		if code == nvml.ERROR_NOT_SUPPORTED {
+			linkWidth = 0
+		} else {
+			return nil, decode("failed to get pcie link width", code)
+		}
 	}
 
 	linkGeneration, code := nvml.DeviceGetMaxPcieLinkGeneration(device)
 	if code != nvml.SUCCESS {
-		return nil, decode("failed to get pcie link generation", code)
+		if code == nvml.ERROR_NOT_SUPPORTED {
+			linkGeneration = 0
+		} else {
+			return nil, decode("failed to get pcie link generation", code)
+		}
 	}
 
 	// https://en.wikipedia.org/wiki/PCI_Express
@@ -159,70 +237,106 @@ func buildID(id [32]int8) string {
 	return string(b)
 }
 
-// DeviceInfoAndStatusByIndex returns DeviceInfo and DeviceStatus for index GPU in system device list.
-func (n *nvmlDriver) DeviceInfoAndStatusByIndex(index uint) (*DeviceInfo, *DeviceStatus, error) {
-	di, err := n.DeviceInfoByIndex(index)
+// DeviceInfoAndStatusByUUID returns DeviceInfo and DeviceStatus for index GPU in system device list.
+func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *DeviceStatus, error) {
+	di, err := n.DeviceInfoByUUID(uuid)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	device, code := nvml.DeviceGetHandleByIndex(int(index))
+	device, code := nvml.DeviceGetHandleByUUID(uuid)
 	if code != nvml.SUCCESS {
 		return nil, nil, decode("failed to get device info", code)
 	}
-
-	temp, code := nvml.DeviceGetTemperature(device, nvml.TEMPERATURE_GPU)
-	if code != nvml.SUCCESS {
-		return nil, nil, decode("failed to get device temperature", code)
-	}
-	tempU := uint(temp)
-
-	utz, code := nvml.DeviceGetUtilizationRates(device)
-	if code != nvml.SUCCESS {
-		return nil, nil, decode("failed to get device utilization", code)
-	}
-	utzGPU := uint(utz.Gpu)
-	utzMem := uint(utz.Memory)
-
-	utzEnc, _, code := nvml.DeviceGetEncoderUtilization(device)
-	if code != nvml.SUCCESS {
-		return nil, nil, decode("failed to get device encoder utilization", code)
-	}
-	utzEncU := uint(utzEnc)
-
-	utzDec, _, code := nvml.Device.GetDecoderUtilization(device)
-	if code != nvml.SUCCESS {
-		return nil, nil, decode("failed to get device decoder utilization", code)
-	}
-	utzDecU := uint(utzDec)
 
 	mem, code := nvml.DeviceGetMemoryInfo(device)
 	if code != nvml.SUCCESS {
 		return nil, nil, decode("failed to get device memory utilization", code)
 	}
-	memUsedU := mem.Used / (1 << 20)
-
-	power, code := nvml.DeviceGetPowerUsage(device)
-	if code != nvml.SUCCESS {
-		return nil, nil, decode("failed to get device power usage", code)
-	}
-	powerU := uint(power)
+	memUsedU := bytesToMegabytes(mem.Used)
 
 	bar, code := nvml.DeviceGetBAR1MemoryInfo(device)
 	if code != nvml.SUCCESS {
 		return nil, nil, decode("failed to get device bar1 memory info", code)
 	}
-	barUsed := bar.Bar1Used / (1 << 20)
+	barUsed := bytesToMegabytes(bar.Bar1Used)
 
-	// note: ecc memory error stats removed; couldn't figure out the API
+	isMig := false
+	_, code = nvml.DeviceGetDeviceHandleFromMigDeviceHandle(device)
+	if code == nvml.ERROR_NOT_FOUND || code == nvml.ERROR_INVALID_ARGUMENT {
+		// Device is not a MIG device.
+	} else if code != nvml.SUCCESS {
+		return nil, nil, decode("failed to get device parent device handle", code)
+	} else {
+		isMig = true
+	}
+
+	// MIG devices don't have temperature, power usage or utilization properties
+	// so just nil them out.
+	utzGPU, utzMem, utzEncU, utzDecU := uint(0), uint(0), uint(0), uint(0)
+	powerU, tempU := uint(0), uint(0)
+	if !isMig {
+		utz, code := nvml.DeviceGetUtilizationRates(device)
+		if code != nvml.SUCCESS {
+			return nil, nil, decode("failed to get device utilization", code)
+		}
+		utzGPU = uint(utz.Gpu)
+		utzMem = uint(utz.Memory)
+
+		utzEnc, _, code := nvml.DeviceGetEncoderUtilization(device)
+		if code != nvml.SUCCESS {
+			return nil, nil, decode("failed to get device encoder utilization", code)
+		}
+		utzEncU = uint(utzEnc)
+
+		utzDec, _, code := nvml.Device.GetDecoderUtilization(device)
+		if code != nvml.SUCCESS {
+			return nil, nil, decode("failed to get device decoder utilization", code)
+		}
+		utzDecU = uint(utzDec)
+
+		temp, code := nvml.DeviceGetTemperature(device, nvml.TEMPERATURE_GPU)
+		if code != nvml.SUCCESS {
+			if code == nvml.ERROR_NOT_SUPPORTED {
+				temp = 0
+			} else {
+				return nil, nil, decode("failed to get device temperature", code)
+			}
+		}
+		tempU = uint(temp)
+
+		power, code := nvml.DeviceGetPowerUsage(device)
+		if code != nvml.SUCCESS {
+			if code == nvml.ERROR_NOT_SUPPORTED {
+				power = 0
+			} else {
+				return nil, nil, decode("failed to get device power usage", code)
+			}
+		}
+		powerU = uint(power)
+	}
+
+	ecc, code := nvml.DeviceGetDetailedEccErrors(device, nvml.MEMORY_ERROR_TYPE_CORRECTED, nvml.VOLATILE_ECC)
+	if code != nvml.SUCCESS {
+		if code == nvml.ERROR_NOT_SUPPORTED {
+			ecc = nvml.EccErrorCounts{}
+		} else {
+			return nil, nil, decode("failed to get device ecc error counts", code)
+		}
+	}
+
 	return di, &DeviceStatus{
-		TemperatureC:       &tempU,
-		GPUUtilization:     &utzGPU,
-		MemoryUtilization:  &utzMem,
-		EncoderUtilization: &utzEncU,
-		DecoderUtilization: &utzDecU,
-		UsedMemoryMiB:      &memUsedU,
-		PowerUsageW:        &powerU,
-		BAR1UsedMiB:        &barUsed,
+		TemperatureC:          &tempU,
+		GPUUtilization:        &utzGPU,
+		MemoryUtilization:     &utzMem,
+		EncoderUtilization:    &utzEncU,
+		DecoderUtilization:    &utzDecU,
+		UsedMemoryMiB:         &memUsedU,
+		PowerUsageW:           &powerU,
+		BAR1UsedMiB:           &barUsed,
+		ECCErrorsDevice:       &ecc.DeviceMemory,
+		ECCErrorsL1Cache:      &ecc.L1Cache,
+		ECCErrorsL2Cache:      &ecc.L2Cache,
+		ECCErrorsRegisterFile: &ecc.RegisterFile,
 	}, nil
 }

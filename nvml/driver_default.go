@@ -20,17 +20,17 @@ func (n *nvmlDriver) SystemDriverVersion() (string, error) {
 	return "", UnavailableLib
 }
 
-// DeviceCount reports number of available GPU devices
-func (n *nvmlDriver) DeviceCount() (uint, error) {
-	return 0, UnavailableLib
-}
-
-// DeviceInfoByIndex returns DeviceInfo for index GPU in system device list
-func (n *nvmlDriver) DeviceInfoByIndex(index uint) (*DeviceInfo, error) {
+// ListDeviceUUIDs reports number of available GPU devices
+func (n *nvmlDriver) ListDeviceUUIDs() ([]string, error) {
 	return nil, UnavailableLib
 }
 
-// DeviceInfoByIndex returns DeviceInfo and DeviceStatus for index GPU in system device list
-func (n *nvmlDriver) DeviceInfoAndStatusByIndex(index uint) (*DeviceInfo, *DeviceStatus, error) {
+// DeviceInfoByUUID returns DeviceInfo for the GPU matching the given UUID
+func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
+	return nil, UnavailableLib
+}
+
+// DeviceInfoAndStatusByUUID returns DeviceInfo and DeviceStatus for the GPU matching the given UUID
+func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *DeviceStatus, error) {
 	return nil, nil, UnavailableLib
 }

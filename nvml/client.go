@@ -4,7 +4,9 @@
 package nvml
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 )
 
 // DeviceData represents common fields for Nvidia device
@@ -95,28 +97,32 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 	*/
 
 	// Assumed that this method is called with receiver retrieved from
-	// NewNvmlClient
-	// because this method handles initialization of NVML library
+	// NewNvmlClient because this method handles initialization of NVML library
 
 	driverVersion, err := c.driver.SystemDriverVersion()
 	if err != nil {
 		return nil, fmt.Errorf("nvidia nvml SystemDriverVersion() error: %v\n", err)
 	}
 
-	numDevices, err := c.driver.DeviceCount()
+	deviceUUIDs, err := c.driver.ListDeviceUUIDs()
 	if err != nil {
-		return nil, fmt.Errorf("nvidia nvml DeviceCount() error: %v\n", err)
+		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %v\n", err)
 	}
 
-	allNvidiaGPUResources := make([]*FingerprintDeviceData, numDevices)
+	allNvidiaGPUResources := make([]*FingerprintDeviceData, 0, len(deviceUUIDs))
 
-	for i := 0; i < int(numDevices); i++ {
-		deviceInfo, err := c.driver.DeviceInfoByIndex(uint(i))
-		if err != nil {
-			return nil, fmt.Errorf("nvidia nvml DeviceInfoByIndex() error: %v\n", err)
+	for uuid, mode := range deviceUUIDs {
+		// do not care about phsyical parents of MIGs
+		if mode == parent {
+			continue
 		}
 
-		allNvidiaGPUResources[i] = &FingerprintDeviceData{
+		deviceInfo, err := c.driver.DeviceInfoByUUID(uuid)
+		if err != nil {
+			return nil, fmt.Errorf("nvidia nvml DeviceInfoByUUID() error: %v\n", err)
+		}
+
+		allNvidiaGPUResources = append(allNvidiaGPUResources, &FingerprintDeviceData{
 			DeviceData: &DeviceData{
 				DeviceName: deviceInfo.Name,
 				UUID:       deviceInfo.UUID,
@@ -130,8 +136,13 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 			DisplayState:       deviceInfo.DisplayState,
 			PersistenceMode:    deviceInfo.PersistenceMode,
 			PCIBusID:           deviceInfo.PCIBusID,
-		}
+		})
+
+		slices.SortFunc(allNvidiaGPUResources, func(a, b *FingerprintDeviceData) int {
+			return cmp.Compare(a.DeviceData.UUID, b.DeviceData.UUID)
+		})
 	}
+
 	return &FingerprintData{
 		Devices:       allNvidiaGPUResources,
 		DriverVersion: driverVersion,
@@ -156,23 +167,32 @@ func (c *nvmlClient) GetStatsData() ([]*StatsData, error) {
 	*/
 
 	// Assumed that this method is called with receiver retrieved from
-	// NewNvmlClient
-	// because this method handles initialization of NVML library
+	// NewNvmlClient because this method handles initialization of NVML library
 
-	numDevices, err := c.driver.DeviceCount()
+	deviceUUIDs, err := c.driver.ListDeviceUUIDs()
 	if err != nil {
-		return nil, fmt.Errorf("nvidia nvml DeviceCount() error: %v\n", err)
+		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %v\n", err)
 	}
 
-	allNvidiaGPUStats := make([]*StatsData, numDevices)
+	allNvidiaGPUStats := make([]*StatsData, 0, len(deviceUUIDs))
 
-	for i := 0; i < int(numDevices); i++ {
-		deviceInfo, deviceStatus, err := c.driver.DeviceInfoAndStatusByIndex(uint(i))
-		if err != nil {
-			return nil, fmt.Errorf("nvidia nvml DeviceInfoAndStatusByIndex() error: %v\n", err)
+	for uuid, mode := range deviceUUIDs {
+
+		// A30/A100 MIG devices have no stats.
+		//
+		// https://docs.nvidia.com/datacenter/tesla/mig-user-guide/#telemetry
+		//
+		// Is this fixed on H100 or later? Maybe?
+		if mode == mig || mode == parent {
+			continue
 		}
 
-		allNvidiaGPUStats[i] = &StatsData{
+		deviceInfo, deviceStatus, err := c.driver.DeviceInfoAndStatusByUUID(uuid)
+		if err != nil {
+			return nil, fmt.Errorf("nvidia nvml DeviceInfoAndStatusByUUID() error: %v\n", err)
+		}
+
+		allNvidiaGPUStats = append(allNvidiaGPUStats, &StatsData{
 			DeviceData: &DeviceData{
 				DeviceName: deviceInfo.Name,
 				UUID:       deviceInfo.UUID,
@@ -191,7 +211,11 @@ func (c *nvmlClient) GetStatsData() ([]*StatsData, error) {
 			ECCErrorsL1Cache:   deviceStatus.ECCErrorsL1Cache,
 			ECCErrorsL2Cache:   deviceStatus.ECCErrorsL2Cache,
 			ECCErrorsDevice:    deviceStatus.ECCErrorsDevice,
-		}
+		})
+
+		slices.SortFunc(allNvidiaGPUStats, func(a, b *StatsData) int {
+			return cmp.Compare(a.DeviceData.UUID, b.DeviceData.UUID)
+		})
 	}
 	return allNvidiaGPUStats, nil
 }

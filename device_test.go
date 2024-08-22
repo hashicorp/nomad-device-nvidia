@@ -6,7 +6,7 @@ package nvidia
 import (
 	"testing"
 
-	hclog "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/shoenig/test/must"
