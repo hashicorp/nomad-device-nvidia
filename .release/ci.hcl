@@ -13,7 +13,7 @@ project "nomad-device-nvidia" {
     repository   = "nomad-device-nvidia"
     release_branches = [
       "main",
-      "crt-onboard",
+      "release/**",
     ]
   }
 }
