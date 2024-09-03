@@ -13,7 +13,7 @@ project "nomad-device-nvidia" {
     repository   = "nomad-device-nvidia"
     release_branches = [
       "main",
-      "crt-onboard",
+      "release/**",
     ]
   }
 }
@@ -60,6 +60,7 @@ event "promote-staging" {
     organization = "hashicorp"
     repository   = "crt-workflows-common"
     workflow     = "promote-staging"
+    config       = "release-metadata.hcl"
   }
 
   notification {
