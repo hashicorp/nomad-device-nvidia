@@ -11,8 +11,8 @@ The Nvidia device plugin uses
 regarding available Nvidia devices and will expose them via
 [`Fingerprint`](https://www.nomadproject.io/docs/internals/plugins/devices#fingerprint-context-context-chan-fingerprintresponse-error)
 RPC. GPUs can be excluded from fingerprinting by setting the `ignored_gpu_ids`
-field (see below). Plugin sends statistics for fingerprinted devices every
-`stats_period` period.
+field (see below). Plugin sends statistics for fingerprinted devices periodically.
+
 
 The plugin detects whether the GPU has [`Multi-Instance GPU (MIG)`](https://www.nvidia.com/en-us/technologies/multi-instance-gpu/) enabled.
 When enabled all instances will be fingerprinted as individual GPUs that can be addressed accordingly.
