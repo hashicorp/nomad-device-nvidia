@@ -21,7 +21,7 @@ func (n *nvmlDriver) SystemDriverVersion() (string, error) {
 }
 
 // ListDeviceUUIDs reports number of available GPU devices
-func (n *nvmlDriver) ListDeviceUUIDs() ([]string, error) {
+func (n *nvmlDriver) ListDeviceUUIDs() (map[string]mode, error) {
 	return nil, UnavailableLib
 }
 
