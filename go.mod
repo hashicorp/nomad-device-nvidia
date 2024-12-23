@@ -1,6 +1,7 @@
 module github.com/hashicorp/nomad-device-nvidia
 
-go 1.22
+go 1.23
+
 toolchain go1.23.4
 
 // maintain the go-metrics version required by nomad
