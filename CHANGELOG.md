@@ -1,5 +1,8 @@
 ## UNRELEASED
 
+IMPROVEMENTS:
+ * build: Updated to Go 1.24.1
+
 ## 1.1.0 (August 22, 2024)
 
 IMPROVEMENTS:
