@@ -1,8 +1,6 @@
 module github.com/hashicorp/nomad-device-nvidia
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.24.1
 
 // maintain the go-metrics version required by nomad
 replace github.com/armon/go-metrics => github.com/armon/go-metrics v0.0.0-20230509193637-d9ca9af9f1f9
