@@ -1,7 +1,8 @@
 ## UNRELEASED
 
 IMPROVEMENTS:
- * build: Updated to Go 1.24.1
+ * build: Updated Nomad to 1.10.0
+ * build: Updated to Go 1.24.2
 
 ## 1.1.0 (August 22, 2024)
 
