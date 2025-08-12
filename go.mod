@@ -9,7 +9,7 @@ replace github.com/armon/go-metrics => github.com/armon/go-metrics v0.0.0-202305
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
 require (
-	github.com/NVIDIA/go-nvml v0.12.4-0
+	github.com/NVIDIA/go-nvml v0.12.9-0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/nomad v1.10.2
 	github.com/shoenig/test v1.12.1
