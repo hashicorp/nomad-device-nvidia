@@ -229,7 +229,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 	}, nil
 }
 
-func buildID(id [32]int8) string {
+func buildID(id [32]uint8) string {
 	b := make([]byte, len(id))
 	for i := 0; i < len(id); i++ {
 		b[i] = byte(id[i])
