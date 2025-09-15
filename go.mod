@@ -12,7 +12,7 @@ require (
 	github.com/NVIDIA/go-nvml v0.13.0-1
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/nomad v1.10.5
-	github.com/shoenig/test v1.12.1
+	github.com/shoenig/test v1.12.2
 )
 
 require (
