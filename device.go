@@ -112,7 +112,7 @@ type NvidiaDevice struct {
 func NewNvidiaDevice(_ context.Context, log hclog.Logger) *NvidiaDevice {
 	nvmlClient, err := nvml.NewNvmlClient()
 	logger := log.Named(pluginName)
-	if err != nil && err.Error() != nvml.UnavailableLib.Error() {
+	if err != nil && err.Error() != nvml.ErrUnavailableLib.Error() {
 		logger.Error("unable to initialize Nvidia driver", "reason", err)
 	}
 	return &NvidiaDevice{

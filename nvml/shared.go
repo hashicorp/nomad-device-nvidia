@@ -6,8 +6,8 @@ package nvml
 import "errors"
 
 var (
-	// UnavailableLib is returned when the nvml library could not be loaded.
-	UnavailableLib = errors.New("could not load NVML library")
+	// ErrUnavailableLib is returned when the nvml library could not be loaded.
+	ErrUnavailableLib = errors.New("could not load NVML library")
 )
 
 type mode int
