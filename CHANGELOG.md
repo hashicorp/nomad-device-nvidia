@@ -2,7 +2,7 @@
 
 IMPROVEMENTS:
  * build: Updated Nomad to 1.10.2 [[GH-69](https://github.com/hashicorp/nomad-device-nvidia/pull/69)]
- * build: Updated to Go 1.24.6 [[GH-72](https://github.com/hashicorp/nomad-device-nvidia/pull/72)]
+ * build: Updated to Go 1.25.5 [[GH-82](https://github.com/hashicorp/nomad-device-nvidia/pull/82)]
 
 ## 1.1.0 (August 22, 2024)
 
