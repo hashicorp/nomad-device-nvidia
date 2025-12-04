@@ -59,7 +59,7 @@ func (d *NvidiaDevice) stats(ctx context.Context, stats chan<- *device.StatsResp
 	defer close(stats)
 
 	if d.initErr != nil {
-		if d.initErr.Error() != nvml.UnavailableLib.Error() {
+		if d.initErr.Error() != nvml.ErrUnavailableLib.Error() {
 			d.logger.Error("exiting stats due to problems with NVML loading", "error", d.initErr)
 			stats <- device.NewStatsError(d.initErr)
 		}

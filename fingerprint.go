@@ -31,7 +31,7 @@ func (d *NvidiaDevice) fingerprint(ctx context.Context, devices chan<- *device.F
 	defer close(devices)
 
 	if d.initErr != nil {
-		if d.initErr.Error() != nvml.UnavailableLib.Error() {
+		if d.initErr.Error() != nvml.ErrUnavailableLib.Error() {
 			d.logger.Error("exiting fingerprinting due to problems with NVML loading", "error", d.initErr)
 			devices <- device.NewFingerprintError(d.initErr)
 		}

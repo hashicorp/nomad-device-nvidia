@@ -101,12 +101,12 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 
 	driverVersion, err := c.driver.SystemDriverVersion()
 	if err != nil {
-		return nil, fmt.Errorf("nvidia nvml SystemDriverVersion() error: %v\n", err)
+		return nil, fmt.Errorf("nvidia nvml SystemDriverVersion() error: %w", err)
 	}
 
 	deviceUUIDs, err := c.driver.ListDeviceUUIDs()
 	if err != nil {
-		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %v\n", err)
+		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %w", err)
 	}
 
 	allNvidiaGPUResources := make([]*FingerprintDeviceData, 0, len(deviceUUIDs))
@@ -119,7 +119,7 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 
 		deviceInfo, err := c.driver.DeviceInfoByUUID(uuid)
 		if err != nil {
-			return nil, fmt.Errorf("nvidia nvml DeviceInfoByUUID() error: %v\n", err)
+			return nil, fmt.Errorf("nvidia nvml DeviceInfoByUUID() error: %w", err)
 		}
 
 		allNvidiaGPUResources = append(allNvidiaGPUResources, &FingerprintDeviceData{
@@ -139,7 +139,7 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 		})
 
 		slices.SortFunc(allNvidiaGPUResources, func(a, b *FingerprintDeviceData) int {
-			return cmp.Compare(a.DeviceData.UUID, b.DeviceData.UUID)
+			return cmp.Compare(a.UUID, b.UUID)
 		})
 	}
 
@@ -171,7 +171,7 @@ func (c *nvmlClient) GetStatsData() ([]*StatsData, error) {
 
 	deviceUUIDs, err := c.driver.ListDeviceUUIDs()
 	if err != nil {
-		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %v\n", err)
+		return nil, fmt.Errorf("nvidia nvml ListDeviceUUIDs() error: %v", err)
 	}
 
 	allNvidiaGPUStats := make([]*StatsData, 0, len(deviceUUIDs))
@@ -189,7 +189,7 @@ func (c *nvmlClient) GetStatsData() ([]*StatsData, error) {
 
 		deviceInfo, deviceStatus, err := c.driver.DeviceInfoAndStatusByUUID(uuid)
 		if err != nil {
-			return nil, fmt.Errorf("nvidia nvml DeviceInfoAndStatusByUUID() error: %v\n", err)
+			return nil, fmt.Errorf("nvidia nvml DeviceInfoAndStatusByUUID() error: %v", err)
 		}
 
 		allNvidiaGPUStats = append(allNvidiaGPUStats, &StatsData{
@@ -214,7 +214,7 @@ func (c *nvmlClient) GetStatsData() ([]*StatsData, error) {
 		})
 
 		slices.SortFunc(allNvidiaGPUStats, func(a, b *StatsData) int {
-			return cmp.Compare(a.DeviceData.UUID, b.DeviceData.UUID)
+			return cmp.Compare(a.UUID, b.UUID)
 		})
 	}
 	return allNvidiaGPUStats, nil
