@@ -1,6 +1,7 @@
 ## UNRELEASED
 
 IMPROVEMENTS:
+ * build: Build for arm64 architectures [[GH-86](https://github.com/hashicorp/nomad-device-nvidia/pull/86)]
  * build: Updated Nomad to 1.11.0 [[GH-80](https://github.com/hashicorp/nomad-device-nvidia/pull/80)]
  * build: Updated to Go 1.25.5 [[GH-82](https://github.com/hashicorp/nomad-device-nvidia/pull/82)]
 

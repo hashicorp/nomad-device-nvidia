@@ -1,6 +1,8 @@
 SHELL = bash
 
 NOMAD_PLUGIN_DIR ?= /tmp/nomad-plugins
+THIS_ARCH := $(shell uname -m)
+CGO_ENABLED = 1
 
 .PHONY: clean
 clean:
@@ -37,10 +39,15 @@ hack:
 
 # CRT release compilation
 dist/%/nomad-device-nvidia: GO_OUT ?= $@
+dist/%/nomad-device-nvidia: CC ?= $(shell go env CC)
 dist/%/nomad-device-nvidia:
 	@echo "==> RELEASE BUILD of $@ ..."
-	GOOS=linux GOARCH=$(lastword $(subst _, ,$*)) \
+	CGO_ENABLED=$(CGO_ENABLED) GOOS=linux GOARCH=$(lastword $(subst _, ,$*)) CC=$(CC) \
 	go build -trimpath -o $(GO_OUT) cmd/main.go
+
+ifneq (aarch64,$(THIS_ARCH))
+dist/linux_arm64/nomad-device-nvidia: CC = aarch64-linux-gnu-gcc
+endif
 
 # CRT release packaging (zip only)
 .PRECIOUS: dist/%/nomad-device-nvidia
