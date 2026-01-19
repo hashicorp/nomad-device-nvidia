@@ -1,6 +1,7 @@
 ## UNRELEASED
 
 IMPROVEMENTS:
+ * driver: Added support for GPUs with unified memory/no dedicated BAR1 memory (such as GH200s, GB10s, etc) [[GH-87](https://github.com/hashicorp/nomad-device-nvidia/pull/87)]
  * build: Updated Nomad to 1.11.0 [[GH-80](https://github.com/hashicorp/nomad-device-nvidia/pull/80)]
  * build: Updated to Go 1.25.5 [[GH-82](https://github.com/hashicorp/nomad-device-nvidia/pull/82)]
 
