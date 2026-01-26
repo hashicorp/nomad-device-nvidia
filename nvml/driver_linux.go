@@ -149,10 +149,16 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 	powerU := uint(power) / 1000
 
 	bar1, code := nvml.DeviceGetBAR1MemoryInfo(device)
-	if code != nvml.SUCCESS {
+	var bar1total *uint64
+	switch code {
+	case nvml.SUCCESS:
+		b1val := bytesToMegabytes(bar1.Bar1Total)
+		bar1total = &b1val
+	case nvml.ERROR_NOT_SUPPORTED:
+		bar1total = nil
+	default:
 		return nil, decode("failed to get device bar 1 memory info", code)
 	}
-	bar1total := bytesToMegabytes(bar1.Bar1Total)
 
 	pci, code := nvml.Device.GetPciInfo(device)
 	if code != nvml.SUCCESS {
@@ -219,7 +225,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 		Name:               &name,
 		MemoryMiB:          &memoryTotal,
 		PowerW:             &powerU,
-		BAR1MiB:            &bar1total,
+		BAR1MiB:            bar1total,
 		PCIBandwidthMBPerS: &bandwidth,
 		PCIBusID:           busID,
 		CoresClockMHz:      &coreClockU,
@@ -256,10 +262,16 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 	memUsedU := bytesToMegabytes(mem.Used)
 
 	bar, code := nvml.DeviceGetBAR1MemoryInfo(device)
-	if code != nvml.SUCCESS {
+	var barUsed *uint64
+	switch code {
+	case nvml.SUCCESS:
+		val := bytesToMegabytes(bar.Bar1Used)
+		barUsed = &val
+	case nvml.ERROR_NOT_SUPPORTED:
+		barUsed = nil
+	default:
 		return nil, nil, decode("failed to get device bar1 memory info", code)
 	}
-	barUsed := bytesToMegabytes(bar.Bar1Used)
 
 	isMig := false
 	_, code = nvml.DeviceGetDeviceHandleFromMigDeviceHandle(device)
@@ -333,7 +345,7 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 		DecoderUtilization:    &utzDecU,
 		UsedMemoryMiB:         &memUsedU,
 		PowerUsageW:           &powerU,
-		BAR1UsedMiB:           &barUsed,
+		BAR1UsedMiB:           barUsed,
 		ECCErrorsDevice:       &ecc.DeviceMemory,
 		ECCErrorsL1Cache:      &ecc.L1Cache,
 		ECCErrorsL2Cache:      &ecc.L2Cache,
