@@ -7,6 +7,7 @@ package nvml
 
 import (
 	"fmt"
+	"syscall"
 
 	"github.com/NVIDIA/go-nvml/pkg/nvml"
 )
@@ -109,6 +110,27 @@ func bytesToMegabytes(size uint64) uint64 {
 	return size / (1 << 20)
 }
 
+func determineMemoryInfo(memory nvml.Memory, memoryCode nvml.Return) (totalMiB uint64, usedMiB uint64, usingSystemMemory bool, err error) {
+	switch memoryCode {
+	case nvml.SUCCESS:
+		return bytesToMegabytes(memory.Total), bytesToMegabytes(memory.Used), false, nil
+	case nvml.ERROR_NOT_SUPPORTED:
+		// iGPU systems don't support device memory queries, fall back to system memory.
+		var info syscall.Sysinfo_t
+		if err := syscall.Sysinfo(&info); err != nil {
+			return 0, 0, true, fmt.Errorf("failed to get system memory info: %w", err)
+		}
+
+		unit := uint64(info.Unit)
+		total := info.Totalram * unit
+
+		free := info.Freeram * unit
+		return bytesToMegabytes(total), bytesToMegabytes(total - free), true, nil
+	default:
+		return 0, 0, false, decode("failed to get device memory info", memoryCode)
+	}
+}
+
 // DeviceInfoByUUID returns DeviceInfo for the given GPU's UUID.
 func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 	device, code := nvml.DeviceGetHandleByUUID(uuid)
@@ -122,10 +144,10 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 	}
 
 	memory, code := nvml.DeviceGetMemoryInfo(device)
-	if code != nvml.SUCCESS {
-		return nil, decode("failed to get device memory info", code)
+	memoryTotal, _, _, err := determineMemoryInfo(memory, code)
+	if err != nil {
+		return nil, err
 	}
-	memoryTotal := bytesToMegabytes(memory.Total)
 
 	parentDevice, code := nvml.DeviceGetDeviceHandleFromMigDeviceHandle(device)
 	if code == nvml.ERROR_NOT_FOUND || code == nvml.ERROR_INVALID_ARGUMENT {
@@ -205,10 +227,16 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 	coreClockU := uint(coreClock)
 
 	memClock, code := nvml.DeviceGetClockInfo(device, nvml.CLOCK_MEM)
-	if code != nvml.SUCCESS {
+	var memClockU *uint
+	switch code {
+	case nvml.SUCCESS:
+		val := uint(memClock)
+		memClockU = &val
+	case nvml.ERROR_NOT_SUPPORTED:
+		memClockU = nil
+	default:
 		return nil, decode("failed to get device mem clock", code)
 	}
-	memClockU := uint(memClock)
 
 	mode, code := nvml.DeviceGetDisplayMode(device)
 	if code != nvml.SUCCESS {
@@ -229,7 +257,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 		PCIBandwidthMBPerS: &bandwidth,
 		PCIBusID:           busID,
 		CoresClockMHz:      &coreClockU,
-		MemoryClockMHz:     &memClockU,
+		MemoryClockMHz:     memClockU,
 		DisplayState:       fmt.Sprintf("%v", mode),
 		PersistenceMode:    fmt.Sprintf("%v", persistence),
 	}, nil
@@ -255,11 +283,11 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 		return nil, nil, decode("failed to get device info", code)
 	}
 
-	mem, code := nvml.DeviceGetMemoryInfo(device)
-	if code != nvml.SUCCESS {
-		return nil, nil, decode("failed to get device memory utilization", code)
+	nvmlMemory, code := nvml.DeviceGetMemoryInfo(device)
+	memTotalU, memUsedU, usingSystemMemory, err := determineMemoryInfo(nvmlMemory, code)
+	if err != nil {
+		return nil, nil, err
 	}
-	memUsedU := bytesToMegabytes(mem.Used)
 
 	bar, code := nvml.DeviceGetBAR1MemoryInfo(device)
 	var barUsed *uint64
@@ -294,6 +322,11 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 		}
 		utzGPU = uint(utz.Gpu)
 		utzMem = uint(utz.Memory)
+
+		// NVML memory utilization is not reported for iGPU devices, derive it from used/total memory.
+		if usingSystemMemory && memTotalU > 0 {
+			utzMem = uint((memUsedU * 100) / memTotalU)
+		}
 
 		utzEnc, _, code := nvml.DeviceGetEncoderUtilization(device)
 		if code != nvml.SUCCESS {
