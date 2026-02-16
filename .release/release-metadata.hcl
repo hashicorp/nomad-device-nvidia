@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2024, 2026
 # SPDX-License-Identifier: MPL-2.0
 
 url_license = "https://github.com/hashicorp/nomad-device-nvidia/blob/main/LICENSE"
