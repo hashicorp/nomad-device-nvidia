@@ -3,7 +3,7 @@
 IMPROVEMENTS:
  * build: Build for arm64 architectures [[GH-86](https://github.com/hashicorp/nomad-device-nvidia/pull/86)]
  * build: Updated Nomad to 1.11.0 [[GH-80](https://github.com/hashicorp/nomad-device-nvidia/pull/80)]
- * build: Updated to Go 1.25.5 [[GH-82](https://github.com/hashicorp/nomad-device-nvidia/pull/82)]
+ * build: Updated to Go 1.25.5, 1.25.7 [[GH-82](https://github.com/hashicorp/nomad-device-nvidia/pull/82)], [[GH-82](https://github.com/hashicorp/nomad-device-nvidia/pull/92)]
  * driver: Added support for GPUs with unified memory/no dedicated BAR1 memory (such as GH200s, GB10s, etc) [[GH-87](https://github.com/hashicorp/nomad-device-nvidia/pull/87)], [[GH-90](https://github.com/hashicorp/nomad-device-nvidia/pull/90)]
 
 ## 1.1.0 (August 22, 2024)
