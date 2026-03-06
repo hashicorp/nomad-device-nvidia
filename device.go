@@ -323,8 +323,8 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 
 			// use the first deviceID to look up and set envvars
 			if i == 0 {
-				containerEnvs[MpsPipeDirectory] = c.MpsPipeDirectory
-				containerEnvs[MpsLogDirectory] = c.MpsLogDirectory
+				containerEnvs[MpsPipeDirectoryKey] = c.MpsPipeDirectory
+				containerEnvs[MpsLogDirectoryKey] = c.MpsLogDirectory
 			}
 		}
 	}

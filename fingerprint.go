@@ -261,7 +261,7 @@ func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData) map[stri
 // getDeviceSharingStatus attempts to connect to the mps-control socket
 // using the configured mps_pip_directory
 func (d *NvidiaDevice) getDeviceSharingStatus(dialtype string, mps_pipe_directory string) device.DeviceSharing {
-	sockAddr := mps_pipe_directory + "/control"
+	sockAddr := mps_pipe_directory + d.MpsConfig.MpsSockFile
 	tries := 0
 	for tries < 5 {
 		_, err := net.Dial(dialtype, sockAddr)
