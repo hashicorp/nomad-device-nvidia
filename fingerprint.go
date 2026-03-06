@@ -5,6 +5,8 @@ package nvidia
 
 import (
 	"context"
+	"fmt"
+	"net"
 	"time"
 
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
@@ -66,6 +68,32 @@ func (d *NvidiaDevice) writeFingerprintToChannel(devices chan<- *device.Fingerpr
 
 	// ignore devices from fingerprint output
 	fingerprintDevices := ignoreFingerprintedDevices(fingerprintData.Devices, d.ignoredGPUIDs)
+
+	// update sharingStatus on any devices not marked ineligible for being mig
+	// before checking for changes
+	//setDevices := func(dev nvml.FingerprintDeviceData, pipeDir string, uuid string) nvml.FingerprintDeviceData {
+	//	if uuid == "" {
+	//		dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", pipeDir)
+	//	}
+	//}
+
+	for _, dev := range fingerprintDevices {
+		// skip mig mode devices marked ineligible by the client
+		if dev.SharingStatus != device.SharingIneligible {
+			continue
+		}
+		// set all eligible devices at once if globalPipeDirectory is set
+		if d.globalMpsPipeDirectory != "" {
+			dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", d.globalMpsPipeDirectory)
+			continue
+		}
+
+		// otherwise lookup appropriate pipe directory by deviceUUID
+		if len(d.deviceMpsConfig) != 0 {
+			devConfig := d.deviceMpsConfig[dev.UUID]
+			dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", devConfig.MpsPipeDirectory)
+		}
+	}
 	// check if any device health was updated or any device was added to host
 	if !d.fingerprintChanged(fingerprintDevices) {
 		return
@@ -77,23 +105,26 @@ func (d *NvidiaDevice) writeFingerprintToChannel(devices chan<- *device.Fingerpr
 		},
 	}
 
-	// Group all FingerprintDevices by DeviceName attribute
-	deviceListByDeviceName := make(map[string][]*nvml.FingerprintDeviceData)
-	for _, device := range fingerprintDevices {
-		deviceName := device.DeviceName
+	// Group all FingerprintDevices by DeviceName and SharingStatus attributes
+	deviceListByDeviceNameAndSharing := make(map[string][]*nvml.FingerprintDeviceData)
+
+	for _, dev := range fingerprintDevices {
+		deviceName := dev.DeviceName
+
 		if deviceName == nil {
 			// nvml driver was not able to detect device name. This kind
 			// of devices are placed to single group with 'notAvailable' name
 			notAvailableCopy := notAvailable
 			deviceName = &notAvailableCopy
 		}
+		sharingName := fmt.Sprintf("%s.%s", dev.SharingStatus, dev.DeviceName)
+		deviceListByDeviceNameAndSharing[sharingName] = append(deviceListByDeviceNameAndSharing[sharingName], dev)
 
-		deviceListByDeviceName[*deviceName] = append(deviceListByDeviceName[*deviceName], device)
 	}
 
 	// Build Fingerprint response with computed groups and send it over the channel
-	deviceGroups := make([]*device.DeviceGroup, 0, len(deviceListByDeviceName))
-	for groupName, devices := range deviceListByDeviceName {
+	deviceGroups := make([]*device.DeviceGroup, 0, len(deviceListByDeviceNameAndSharing))
+	for groupName, devices := range deviceListByDeviceNameAndSharing {
 		deviceGroups = append(deviceGroups, deviceGroupFromFingerprintData(groupName, devices, commonAttributes))
 	}
 	devices <- device.NewFingerprint(deviceGroups...)
@@ -229,4 +260,27 @@ func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData) map[stri
 	}
 
 	return attrs
+}
+
+// getDeviceSharingStatus attempts to connect to the mps-control socket
+// using the configured mps_pip_directory
+func (d *NvidiaDevice) getDeviceSharingStatus(dialtype string, mps_pipe_directory string) device.DeviceSharing {
+	sockAddr := mps_pipe_directory + "/control"
+	tries := 0
+	for tries < 5 {
+		_, err := net.Dial(dialtype, sockAddr)
+		if err == nil {
+			return device.SharingActive
+		}
+		tries++
+
+		backoff := time.Duration(tries*500) * time.Microsecond
+		time.Sleep(backoff)
+
+		d.logger.Error(fmt.Sprintf("failed to reach mps daemon after %d attempts", tries), "error", err.Error())
+		continue
+
+	}
+	return device.SharingInactive
+
 }
