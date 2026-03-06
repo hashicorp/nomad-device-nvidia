@@ -69,28 +69,20 @@ func (d *NvidiaDevice) writeFingerprintToChannel(devices chan<- *device.Fingerpr
 	// ignore devices from fingerprint output
 	fingerprintDevices := ignoreFingerprintedDevices(fingerprintData.Devices, d.ignoredGPUIDs)
 
-	// update sharingStatus on any devices not marked ineligible for being mig
-	// before checking for changes
-	//setDevices := func(dev nvml.FingerprintDeviceData, pipeDir string, uuid string) nvml.FingerprintDeviceData {
-	//	if uuid == "" {
-	//		dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", pipeDir)
-	//	}
-	//}
-
 	for _, dev := range fingerprintDevices {
 		// skip mig mode devices marked ineligible by the client
 		if dev.SharingStatus != device.SharingIneligible {
 			continue
 		}
 		// set all eligible devices at once if globalPipeDirectory is set
-		if d.globalMpsPipeDirectory != "" {
-			dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", d.globalMpsPipeDirectory)
+		if d.MpsConfig.MpsPipeDirectory != "" {
+			dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", d.MpsConfig.MpsPipeDirectory)
 			continue
 		}
 
 		// otherwise lookup appropriate pipe directory by deviceUUID
-		if len(d.deviceMpsConfig) != 0 {
-			devConfig := d.deviceMpsConfig[dev.UUID]
+		if len(d.MpsConfig.DeviceMpsConfig) != 0 {
+			devConfig := d.MpsConfig.DeviceMpsConfig[dev.UUID]
 			dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", devConfig.MpsPipeDirectory)
 		}
 	}
