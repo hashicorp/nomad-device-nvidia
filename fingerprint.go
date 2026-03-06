@@ -150,16 +150,20 @@ func (d *NvidiaDevice) fingerprintChanged(allDevices []*nvml.FingerprintDeviceDa
 
 	changeDetected := false
 	// check if every device in allDevices is in d.devices
-	for _, device := range allDevices {
-		if _, ok := d.devices[device.UUID]; !ok {
+	for _, dev := range allDevices {
+		if status, ok := d.devices[dev.UUID]; !ok || status != dev.SharingStatus {
 			changeDetected = true
 		}
+
 	}
 
 	// check if every device in d.devices is in allDevices
-	fingerprintDeviceMap := make(map[string]struct{})
-	for _, device := range allDevices {
-		fingerprintDeviceMap[device.UUID] = struct{}{}
+	fingerprintDeviceMap := make(map[string]device.DeviceSharing)
+	for _, dev := range allDevices {
+
+		// include  sharing status in the fingerprintDeviceMap
+		// that gets saved to the device
+		fingerprintDeviceMap[dev.UUID] = dev.SharingStatus
 	}
 	for id := range d.devices {
 		if _, ok := fingerprintDeviceMap[id]; !ok {
