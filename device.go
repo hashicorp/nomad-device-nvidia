@@ -36,6 +36,12 @@ const (
 
 	// Nvidia-container-runtime environment variable names
 	NvidiaVisibleDevices = "NVIDIA_VISIBLE_DEVICES"
+
+	// MPS runtime environment variables
+	MpsPipeDirectory = "MPS_PIPE_DIRECTORY"
+	MpsLogDirectory  = "MPS_LOG_DIRECTORY"
+
+	CustomMpsUser = "MPS_USER"
 )
 
 var (
@@ -277,7 +283,11 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 	if !d.enabled {
 		return nil, device.ErrPluginDisabled
 	}
-
+	var (
+		notExistingIDs       []string
+		containerEnvs        map[string]string
+		reserveDeviceBuilder strings.Builder
+	)
 	// Due to the asynchronous nature of NvidiaPlugin, there is a possibility
 	// of race condition
 	//
@@ -291,21 +301,51 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 	// d.devices map. To avoid this race condition an error is returned if
 	// any of provided deviceIDs is not found in d.devices map
 	d.deviceLock.RLock()
-	var notExistingIDs []string
-	for _, id := range deviceIDs {
+	for i, id := range deviceIDs {
 		if _, deviceIDExists := d.devices[id]; !deviceIDExists {
 			notExistingIDs = append(notExistingIDs, id)
 		}
+		if len(d.deviceMpsConfig) == 0 && d.mpsEnabled {
+			containerEnvs[MpsPipeDirectory] = d.globalMpsPipeDirectory
+			containerEnvs[MpsLogDirectory] = d.globalMpsLogDirectory
+
+			if i == 0 {
+				reserveDeviceBuilder.WriteString(strings.Join(deviceIDs, ","))
+			}
+		}
+		// build appropriate mounts and envs if
+		// mps is limited to specific GPUS
+		if c, ok := d.deviceMpsConfig[id]; ok {
+			reserveDeviceBuilder.WriteString(id)
+			if i < len(deviceIDs)-1 {
+				reserveDeviceBuilder.WriteString(",")
+			}
+
+			// use the first deviceID to look up and set envvars
+			if i == 0 {
+				containerEnvs[MpsPipeDirectory] = c.MpsPipeDirectory
+				containerEnvs[MpsLogDirectory] = c.MpsLogDirectory
+			}
+		}
 	}
+
 	d.deviceLock.RUnlock()
 	if len(notExistingIDs) != 0 {
 		return nil, &reservationError{notExistingIDs}
 	}
+	containerEnvs[NvidiaVisibleDevices] = reserveDeviceBuilder.String()
+	if d.mpsUser != "unset" {
+		containerEnvs[CustomMpsUser] = d.mpsUser
+	}
+
+	mountPipeDir := &device.Mount{
+		TaskPath: containerEnvs[MpsPipeDirectory],
+		ReadOnly: false,
+	}
 
 	return &device.ContainerReservation{
-		Envs: map[string]string{
-			NvidiaVisibleDevices: strings.Join(deviceIDs, ","),
-		},
+		Envs:   containerEnvs,
+		Mounts: []*device.Mount{mountPipeDir},
 	}, nil
 }
 

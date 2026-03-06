@@ -18,7 +18,7 @@ The plugin detects whether the GPU has [`Multi-Instance GPU (MIG)`](https://www.
 When enabled all instances will be fingerprinted as individual GPUs that can be addressed accordingly.
 
 ## MPS Support for Nvidia GPUs
-The plugin can be configured to notify Nomad of GPUs with active MPS servers running against them. The plugin will either the `global_mps_pipe_directory` or the appropriate `mps_pipe_directory` variable from the `device_specific_mps_config` block to check for an active `control` file  in the pipe directory and report if the device is intended and available for sharing in its Fingerprint.
+The plugin can be configured to notify Nomad of GPUs with active MPS servers running against them. The plugin will either the `global_mps_pipe_directory` or the appropriate `mps_pipe_directory` variable from the `device_specific_mps_config` block to check for an actåive `control` file  in the pipe directory and report if the device is intended and available for sharing in its Fingerprint.
 
 Please be aware of Nvidia's published [Considerations](https://docs.nvidia.com/deploy/mps/when-to-use-mps.html#considerations) and consult their documentation and forums for MPS related issues.
 
@@ -27,6 +27,10 @@ At this time, specific MPS related limitations of this plugin include
 must belong to the same user
 - MPS is only supported on linux runtimes in Docker or Podman containers
 - MPS is not currently supported on MIG partitioned GPUs or their parents
+- An individual task can only be run against a single MPS server. In a multi 
+  gpu environment, the Reserve() function  arbitrarily selects a single GPU UID
+  from the list passed to it to retrieve device specific MPS config values like
+  log and pipe directory environment variables.
 
 ## Config
 The plugin is configured in the Nomad client's
