@@ -27,10 +27,7 @@ At this time, specific MPS related limitations of this plugin include
 must belong to the same user
 - MPS is only supported on linux runtimes in Docker or Podman containers
 - MPS is not currently supported on MIG partitioned GPUs or their parents
-- An individual task can only be run against a single MPS server. In a multi 
-  gpu environment, the Reserve() function  arbitrarily selects a single GPU UID
-  from the list passed to it to retrieve device specific MPS config values like
-  log and pipe directory environment variables.
+- An individual task can only be run against a single MPS server.
 
 ## Config
 The plugin is configured in the Nomad client's
@@ -41,10 +38,10 @@ plugin "nvidia" {
   config {
     ignored_gpu_ids    = ["uuid1", "uuid2"]
     fingerprint_period = "5s"
-    mps_enabled = true
-    mps_user = "non-root-user-who-owns-mps-server-and-container-tasks"
-    global_mps_pipe_directory = "/tmp/nvidia-mps"
-    global_mps_log_directory = "var/log/nvidia-mps"
+    mps {
+      mps_pipe_directory = "/tmp/nvidia-mps"
+      mps_log_directory = "var/log/nvidia-mps"
+    }
   }
 }
 ```
@@ -54,19 +51,22 @@ plugin "nvidia" {
   config {
     ignored_gpu_ids    = ["uuid1", "uuid2"]
     fingerprint_period = "5s"
-    mps_enabled = true
-    device_specific_mps_config [
-      {
-        uuid = "GPU-1234"
-        mps_pipe_directory = "/tmp/nvidia-mps1"
-        mps_log_directory = "/var/log/nvidia-mps1"
-      },
-      {
-        uuid = "GPU-5678"
-        mps_pipe_directory = "/tmp/nvidia-mps2"
-        mps_log_directory = "/var/log/nvidia-mps2"
-      },
-    ]
+    mps {
+      mps_user = "non-root-user-who-owns-mps-server-and-container-tasks"
+      device_specific_mps_config [
+        {
+          uuid = "GPU-1234"
+          mps_pipe_directory = "/tmp/nvidia-mps1"
+          mps_log_directory = "/var/log/nvidia-mps1"
+        },
+        {
+          uuid = "GPU-5678"
+          mps_pipe_directory = "/tmp/nvidia-mps2"
+          mps_log_directory = "/var/log/nvidia-mps2"
+        },
+      ]
+    }
+  }
 }
 ```
 The valid configuration options are:
@@ -75,4 +75,10 @@ The valid configuration options are:
   should not be exposed to nomad
 * `fingerprint_period` (`string`: `"1m"`): interval to repeat the fingerprint
   process to identify possible changes.
+* `mps` (`block`): optional mps configuration spec
 
+  * `enabled` (`bool`): required
+  * `mps_pipe_directory` (`string`: `"/tmp/nvidia-mps"`): optional top level key, defaults to nvidia standard location if `enabled` is the only key set in the mps block . Incompatible with `device_specific_mps_config`
+  * `mps_log_directory` (`string`: `"/var/log/nvidia-mps"`): optional top level key, defaults to nvidia standard location if `enabled` is the only key set in the mps block. Incompatible with `device_specific_mps_config`
+  * `mps_user` (`string`: `"unset"`): optional key, defaults to `unset`. This value should only be set if the user that owns the MPS server is different from the user that owns Nomad tasks.
+  * `device_specific_mps_config` (`list(map[string]string)`): optional list of GPU UUIDs and their associated mps_pipe_directory and mps_log_directory locations for use in a multi-GPU environment where multiple MPS servers control different GPU devices. Incompatible with top level `mps_log_directory` and `mps_pipe_directory` keys.

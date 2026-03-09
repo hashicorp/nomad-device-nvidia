@@ -84,6 +84,7 @@ var (
 		),
 		"mps": hclspec.NewBlock("mps", false,
 			hclspec.NewObject(map[string]*hclspec.Spec{
+				"enabled": hclspec.NewAttr("enabled", "bool", true),
 				"mps_user": hclspec.NewDefault(
 					hclspec.NewAttr("mps_user", "string", false),
 					hclspec.NewLiteral("unset"),
