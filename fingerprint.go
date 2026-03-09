@@ -53,73 +53,81 @@ func (d *NvidiaDevice) fingerprint(ctx context.Context, devices chan<- *device.F
 		case <-ticker.C:
 			ticker.Reset(d.fingerprintPeriod)
 		}
-		d.writeFingerprintToChannel(devices)
+		d.writeFingerprintToChannel(ctx, devices)
 	}
 }
 
 // writeFingerprintToChannel makes nvml call and writes response to channel
-func (d *NvidiaDevice) writeFingerprintToChannel(devices chan<- *device.FingerprintResponse) {
-	fingerprintData, err := d.nvmlClient.GetFingerprintData()
-	if err != nil {
-		d.logger.Error("failed to get fingerprint nvidia devices", "error", err)
-		devices <- device.NewFingerprintError(err)
-		return
-	}
+func (d *NvidiaDevice) writeFingerprintToChannel(ctx context.Context, devices chan<- *device.FingerprintResponse) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			fingerprintData, err := d.nvmlClient.GetFingerprintData()
+			if err != nil {
+				d.logger.Error("failed to get fingerprint nvidia devices", "error", err)
+				devices <- device.NewFingerprintError(err)
+				return
+			}
 
-	// ignore devices from fingerprint output
-	fingerprintDevices := ignoreFingerprintedDevices(fingerprintData.Devices, d.ignoredGPUIDs)
+			// ignore devices from fingerprint output
+			fingerprintDevices := ignoreFingerprintedDevices(fingerprintData.Devices, d.ignoredGPUIDs)
 
-	for _, dev := range fingerprintDevices {
-		// skip mig mode devices marked ineligible by the client
-		if dev.SharingStatus != device.SharingIneligible {
-			continue
+			for _, dev := range fingerprintDevices {
+				// skip mig mode devices marked ineligible by the client
+				if dev.SharingStatus != device.SharingIneligible {
+					continue
+				}
+				// set all eligible devices at once if globalPipeDirectory is set
+				if d.MpsConfig.MpsPipeDirectory != "" {
+					dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", d.MpsConfig.MpsPipeDirectory)
+					continue
+				}
+
+				// otherwise lookup appropriate pipe directory by deviceUUID
+				if len(d.MpsConfig.DeviceMpsConfig) != 0 {
+					devConfig := d.MpsConfig.DeviceMpsConfig[dev.UUID]
+					dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", devConfig.MpsPipeDirectory)
+				}
+			}
+			// check if any device health was updated or any device was added to host
+			if !d.fingerprintChanged(fingerprintDevices) {
+				return
+			}
+
+			commonAttributes := map[string]*structs.Attribute{
+				DriverVersionAttr: {
+					String: pointer.Of(fingerprintData.DriverVersion),
+				},
+			}
+
+			// Group all FingerprintDevices by DeviceName and SharingStatus attributes
+			deviceListByDeviceNameAndSharing := make(map[string][]*nvml.FingerprintDeviceData)
+
+			for _, dev := range fingerprintDevices {
+				deviceName := dev.DeviceName
+
+				if deviceName == nil {
+					// nvml driver was not able to detect device name. This kind
+					// of devices are placed to single group with 'notAvailable' name
+					notAvailableCopy := notAvailable
+					deviceName = &notAvailableCopy
+				}
+				sharingName := fmt.Sprintf("%s.%s", dev.SharingStatus, dev.DeviceName)
+				deviceListByDeviceNameAndSharing[sharingName] = append(deviceListByDeviceNameAndSharing[sharingName], dev)
+
+			}
+
+			// Build Fingerprint response with computed groups and send it over the channel
+			deviceGroups := make([]*device.DeviceGroup, 0, len(deviceListByDeviceNameAndSharing))
+			for groupName, devices := range deviceListByDeviceNameAndSharing {
+				deviceGroups = append(deviceGroups, deviceGroupFromFingerprintData(groupName, devices, commonAttributes))
+			}
+			devices <- device.NewFingerprint(deviceGroups...)
+			return
 		}
-		// set all eligible devices at once if globalPipeDirectory is set
-		if d.MpsConfig.MpsPipeDirectory != "" {
-			dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", d.MpsConfig.MpsPipeDirectory)
-			continue
-		}
-
-		// otherwise lookup appropriate pipe directory by deviceUUID
-		if len(d.MpsConfig.DeviceMpsConfig) != 0 {
-			devConfig := d.MpsConfig.DeviceMpsConfig[dev.UUID]
-			dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", devConfig.MpsPipeDirectory)
-		}
 	}
-	// check if any device health was updated or any device was added to host
-	if !d.fingerprintChanged(fingerprintDevices) {
-		return
-	}
-
-	commonAttributes := map[string]*structs.Attribute{
-		DriverVersionAttr: {
-			String: pointer.Of(fingerprintData.DriverVersion),
-		},
-	}
-
-	// Group all FingerprintDevices by DeviceName and SharingStatus attributes
-	deviceListByDeviceNameAndSharing := make(map[string][]*nvml.FingerprintDeviceData)
-
-	for _, dev := range fingerprintDevices {
-		deviceName := dev.DeviceName
-
-		if deviceName == nil {
-			// nvml driver was not able to detect device name. This kind
-			// of devices are placed to single group with 'notAvailable' name
-			notAvailableCopy := notAvailable
-			deviceName = &notAvailableCopy
-		}
-		sharingName := fmt.Sprintf("%s.%s", dev.SharingStatus, dev.DeviceName)
-		deviceListByDeviceNameAndSharing[sharingName] = append(deviceListByDeviceNameAndSharing[sharingName], dev)
-
-	}
-
-	// Build Fingerprint response with computed groups and send it over the channel
-	deviceGroups := make([]*device.DeviceGroup, 0, len(deviceListByDeviceNameAndSharing))
-	for groupName, devices := range deviceListByDeviceNameAndSharing {
-		deviceGroups = append(deviceGroups, deviceGroupFromFingerprintData(groupName, devices, commonAttributes))
-	}
-	devices <- device.NewFingerprint(deviceGroups...)
 }
 
 // ignoreFingerprintedDevices excludes ignored devices from fingerprint output
