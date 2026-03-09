@@ -284,9 +284,9 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 		return nil, device.ErrPluginDisabled
 	}
 	var (
-		notExistingIDs       []string
-		containerEnvs        map[string]string
-		reserveDeviceBuilder strings.Builder
+		notExistingIDs    []string
+		containerEnvs     map[string]string
+		reservedDeviceIDs []string
 	)
 	// Due to the asynchronous nature of NvidiaPlugin, there is a possibility
 	// of race condition
@@ -301,26 +301,23 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 	// d.devices map. To avoid this race condition an error is returned if
 	// any of provided deviceIDs is not found in d.devices map
 	d.deviceLock.RLock()
+
 	for i, id := range deviceIDs {
 		if _, deviceIDExists := d.devices[id]; !deviceIDExists {
 			notExistingIDs = append(notExistingIDs, id)
 		}
+		// pass along top-level mounts and env if mps != nil and no
+		// device specific config exists
 		if d.MpsConfig != nil && len(d.MpsConfig.DeviceMpsConfig) == 0 {
 			containerEnvs[MpsPipeDirectoryKey] = d.MpsConfig.MpsPipeDirectory
 			containerEnvs[MpsLogDirectoryKey] = d.MpsConfig.MpsLogDirectory
 
-			if i == 0 {
-				reserveDeviceBuilder.WriteString(strings.Join(deviceIDs, ","))
-			}
+			reservedDeviceIDs = append(reservedDeviceIDs, id)
 		}
-		// build appropriate mounts and envs if
-		// mps is limited to specific GPUS
+		// build appropriate mounts and envs if device specific config exists
 		if c, ok := d.MpsConfig.DeviceMpsConfig[id]; ok {
-			reserveDeviceBuilder.WriteString(id)
-			if i < len(deviceIDs)-1 {
-				reserveDeviceBuilder.WriteString(",")
-			}
-
+			reservedDeviceIDs = append(reservedDeviceIDs, id)
+			// each task definition must target a single MPS server so
 			// use the first deviceID to look up and set envvars
 			if i == 0 {
 				containerEnvs[MpsPipeDirectoryKey] = c.MpsPipeDirectory
@@ -333,7 +330,7 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 	if len(notExistingIDs) != 0 {
 		return nil, &reservationError{notExistingIDs}
 	}
-	containerEnvs[NvidiaVisibleDevices] = reserveDeviceBuilder.String()
+	containerEnvs[NvidiaVisibleDevices] = strings.Join(reservedDeviceIDs, ",")
 	if d.MpsConfig.MpsUser != "unset" {
 		containerEnvs[CustomMpsUserKey] = d.MpsConfig.MpsUser
 	}
