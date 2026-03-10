@@ -416,6 +416,9 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 				PersistenceModeAttr: {
 					String: pointer.Of("Enabled"),
 				},
+				SharingStatus: {
+					String: pointer.Of("inactive"),
+				},
 			},
 		},
 		{
@@ -447,11 +450,14 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 				PersistenceModeAttr: {
 					String: pointer.Of("Enabled"),
 				},
+				SharingStatus: {
+					String: pointer.Of("inactive"),
+				},
 			},
 		},
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
-			actualResult := attributesFromFingerprintDeviceData(testCase.FingerprintDeviceData)
+			actualResult := attributesFromFingerprintDeviceData(testCase.FingerprintDeviceData, "inactive")
 			must.Eq(t, testCase.ExpectedResult, actualResult)
 		})
 	}
@@ -782,6 +788,9 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
+							SharingStatus: {
+								String: pointer.Of("inactive"),
+							},
 						},
 					},
 				},
@@ -893,6 +902,9 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
+							SharingStatus: {
+								String: pointer.Of("inactive"),
+							},
 						},
 					},
 					{
@@ -942,6 +954,9 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
+							SharingStatus: {
+								String: pointer.Of("inactive"),
+							},
 						},
 					},
 					{
@@ -990,6 +1005,9 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
+							},
+							SharingStatus: {
+								String: pointer.Of("inactive"),
 							},
 						},
 					},
@@ -1102,6 +1120,9 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
+							SharingStatus: {
+								String: pointer.Of("inactive"),
+							},
 						},
 					},
 					{
@@ -1157,6 +1178,9 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
+							},
+							SharingStatus: {
+								String: pointer.Of("inactive"),
 							},
 						},
 					},
@@ -1311,6 +1335,9 @@ func TestFingerprint(t *testing.T) {
 							},
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
+							},
+							SharingStatus: {
+								String: pointer.Of("inactive"),
 							},
 						},
 					},
