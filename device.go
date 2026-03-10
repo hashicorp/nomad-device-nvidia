@@ -285,10 +285,11 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 		return nil, device.ErrPluginDisabled
 	}
 	var (
-		notExistingIDs    []string
-		containerEnvs     map[string]string
+		notExistingIDs []string
+
 		reservedDeviceIDs []string
 	)
+	containerEnvs := make(map[string]string)
 	// Due to the asynchronous nature of NvidiaPlugin, there is a possibility
 	// of race condition
 	//
@@ -307,22 +308,28 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 		if _, deviceIDExists := d.devices[id]; !deviceIDExists {
 			notExistingIDs = append(notExistingIDs, id)
 		}
-		// pass along top-level mounts and env if mps != nil and no
-		// device specific config exists
-		if d.MpsConfig != nil && len(d.MpsConfig.DeviceMpsConfig) == 0 {
-			containerEnvs[MpsPipeDirectoryKey] = d.MpsConfig.MpsPipeDirectory
-			containerEnvs[MpsLogDirectoryKey] = d.MpsConfig.MpsLogDirectory
+		// if set, build mps environment variables
+		if d.MpsConfig != nil {
+			// pass along top-level mounts and envs if mps != nil and no
+			// device specific config exists
+			if len(d.MpsConfig.DeviceMpsConfig) == 0 {
+				containerEnvs[MpsPipeDirectoryKey] = d.MpsConfig.MpsPipeDirectory
+				containerEnvs[MpsLogDirectoryKey] = d.MpsConfig.MpsLogDirectory
+				reservedDeviceIDs = append(reservedDeviceIDs, id)
 
-			reservedDeviceIDs = append(reservedDeviceIDs, id)
-		}
-		// build appropriate mounts and envs if device specific config exists
-		if c, ok := d.MpsConfig.DeviceMpsConfig[id]; ok {
-			reservedDeviceIDs = append(reservedDeviceIDs, id)
-			// each task definition must target a single MPS server so
-			// use the first deviceID to look up and set envvars
-			if i == 0 {
-				containerEnvs[MpsPipeDirectoryKey] = c.MpsPipeDirectory
-				containerEnvs[MpsLogDirectoryKey] = c.MpsLogDirectory
+			} else {
+				// build appropriate mounts and envs if device specific config exists
+				// and the specific device is in the map
+				if c, ok := d.MpsConfig.DeviceMpsConfig[id]; ok {
+					reservedDeviceIDs = append(reservedDeviceIDs, id)
+
+					// each task definition must target a single MPS server so
+					// use the first deviceID to look up and set envvars
+					if i == 0 {
+						containerEnvs[MpsPipeDirectoryKey] = c.MpsPipeDirectory
+						containerEnvs[MpsLogDirectoryKey] = c.MpsLogDirectory
+					}
+				}
 			}
 		}
 	}
@@ -331,21 +338,23 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 	if len(notExistingIDs) != 0 {
 		return nil, &reservationError{notExistingIDs}
 	}
-	containerEnvs[NvidiaVisibleDevices] = strings.Join(reservedDeviceIDs, ",")
-	if d.MpsConfig.MpsUser != "unset" {
-		containerEnvs[CustomMpsUserKey] = d.MpsConfig.MpsUser
-	}
 
-	mountPipeDir := &device.Mount{
-		HostPath: containerEnvs[MpsPipeDirectoryKey],
-		TaskPath: containerEnvs[MpsPipeDirectoryKey],
-		ReadOnly: false,
-	}
+	if d.MpsConfig == nil {
+		return &device.ContainerReservation{
+			Envs: map[string]string{NvidiaVisibleDevices: strings.Join(deviceIDs, ",")},
+		}, nil
 
-	return &device.ContainerReservation{
-		Envs:   containerEnvs,
-		Mounts: []*device.Mount{mountPipeDir},
-	}, nil
+	} else {
+		containerEnvs[NvidiaVisibleDevices] = strings.Join(reservedDeviceIDs, ",")
+		return &device.ContainerReservation{
+			Envs: containerEnvs,
+			Mounts: []*device.Mount{{
+				HostPath: containerEnvs[MpsPipeDirectoryKey],
+				TaskPath: containerEnvs[MpsPipeDirectoryKey],
+				ReadOnly: false,
+			}},
+		}, nil
+	}
 }
 
 // Stats streams statistics for the detected devices.

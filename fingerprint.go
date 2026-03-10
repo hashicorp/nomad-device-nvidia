@@ -75,10 +75,16 @@ func (d *NvidiaDevice) writeFingerprintToChannel(ctx context.Context, devices ch
 			fingerprintDevices := ignoreFingerprintedDevices(fingerprintData.Devices, d.ignoredGPUIDs)
 
 			for _, dev := range fingerprintDevices {
+				//set all devices as inactive if mpsConfig is nil
+				if d.MpsConfig == nil {
+					dev.SharingStatus = device.SharingInactive
+					continue
+				}
 				// skip mig mode devices marked ineligible by the client
 				if dev.SharingStatus != device.SharingIneligible {
 					continue
 				}
+
 				// set all eligible devices at once if globalPipeDirectory is set
 				if d.MpsConfig.MpsPipeDirectory != "" {
 					dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", d.MpsConfig.MpsPipeDirectory)
@@ -106,15 +112,17 @@ func (d *NvidiaDevice) writeFingerprintToChannel(ctx context.Context, devices ch
 			deviceListByDeviceNameAndSharing := make(map[string][]*nvml.FingerprintDeviceData)
 
 			for _, dev := range fingerprintDevices {
-				deviceName := dev.DeviceName
+				var deviceName string
 
-				if deviceName == nil {
+				if dev.DeviceName == nil {
 					// nvml driver was not able to detect device name. This kind
 					// of devices are placed to single group with 'notAvailable' name
 					notAvailableCopy := notAvailable
-					deviceName = &notAvailableCopy
+					deviceName = notAvailableCopy
+				} else {
+					deviceName = *dev.DeviceName
 				}
-				sharingName := fmt.Sprintf("%s.%s", dev.SharingStatus, dev.DeviceName)
+				sharingName := fmt.Sprintf("%s.%s", deviceName, dev.SharingStatus)
 				deviceListByDeviceNameAndSharing[sharingName] = append(deviceListByDeviceNameAndSharing[sharingName], dev)
 
 			}
