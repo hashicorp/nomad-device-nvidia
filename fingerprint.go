@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
@@ -26,6 +27,7 @@ const (
 	PCIBandwidthAttr    = "pci_bandwidth"
 	DisplayStateAttr    = "display_state"
 	PersistenceModeAttr = "persistence_mode"
+	SharingStatus       = "sharing_status"
 )
 
 // fingerprint is the long running goroutine that detects hardware
@@ -189,6 +191,12 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 	if len(deviceList) == 0 {
 		return nil
 	}
+	// get sharingStatus from groupName to set as attribute
+	var sharingStatus string
+	nameSlice := strings.Split(groupName, ".")
+	if len(nameSlice) == 2 {
+		sharingStatus = nameSlice[1]
+	}
 
 	devices := make([]*device.Device, len(deviceList))
 	for index, dev := range deviceList {
@@ -210,7 +218,7 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 		Devices: devices,
 		// Assumption made that devices with the same DeviceName have the same
 		// attributes like amount of memory, power, bar1memory etc
-		Attributes: attributesFromFingerprintDeviceData(deviceList[0]),
+		Attributes: attributesFromFingerprintDeviceData(deviceList[0], sharingStatus),
 	}
 
 	// Extend attribute map with common attributes
@@ -224,7 +232,7 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 // attributesFromFingerprintDeviceData converts nvml.FingerprintDeviceData
 // struct to device.DeviceGroup.Attributes format (map[string]string)
 // this function performs all nil checks for FingerprintDeviceData pointers
-func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData) map[string]*structs.Attribute {
+func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData, sharingStatus string) map[string]*structs.Attribute {
 	attrs := map[string]*structs.Attribute{
 		DisplayStateAttr: {
 			String: pointer.Of(d.DisplayState),
@@ -268,6 +276,11 @@ func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData) map[stri
 		attrs[PCIBandwidthAttr] = &structs.Attribute{
 			Int:  pointer.Of(int64(*d.PCIBandwidthMBPerS)),
 			Unit: structs.UnitMBPerS,
+		}
+	}
+	if sharingStatus != "" {
+		attrs[SharingStatus] = &structs.Attribute{
+			String: &sharingStatus,
 		}
 	}
 
