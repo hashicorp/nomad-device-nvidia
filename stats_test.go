@@ -21,7 +21,7 @@ func TestFilterStatsByID(t *testing.T) {
 	for _, testCase := range []struct {
 		Name           string
 		ProvidedStats  []*nvml.StatsData
-		ProvidedIDs    map[string]struct{}
+		ProvidedIDs    map[string]device.DeviceSharing
 		ExpectedResult []*nvml.StatsData
 	}{
 		{
@@ -85,10 +85,10 @@ func TestFilterStatsByID(t *testing.T) {
 					ECCErrorsDevice:    pointer.Of(uint64(100)),
 				},
 			},
-			ProvidedIDs: map[string]struct{}{
-				"UUID1": {},
-				"UUID2": {},
-				"UUID3": {},
+			ProvidedIDs: map[string]device.DeviceSharing{
+				"UUID1": "",
+				"UUID2": "",
+				"UUID3": "",
 			},
 			ExpectedResult: []*nvml.StatsData{
 				{
@@ -211,8 +211,8 @@ func TestFilterStatsByID(t *testing.T) {
 					ECCErrorsDevice:    pointer.Of(uint64(100)),
 				},
 			},
-			ProvidedIDs: map[string]struct{}{
-				"UUID2": {},
+			ProvidedIDs: map[string]device.DeviceSharing{
+				"UUID2": "",
 			},
 			ExpectedResult: []*nvml.StatsData{
 				{
@@ -297,9 +297,9 @@ func TestFilterStatsByID(t *testing.T) {
 					ECCErrorsDevice:    pointer.Of(uint64(100)),
 				},
 			},
-			ProvidedIDs: map[string]struct{}{
-				"UUID1": {},
-				"UUID3": {},
+			ProvidedIDs: map[string]device.DeviceSharing{
+				"UUID1": "",
+				"UUID3": "",
 			},
 			ExpectedResult: []*nvml.StatsData{
 				{
@@ -344,10 +344,10 @@ func TestFilterStatsByID(t *testing.T) {
 		},
 		{
 			Name: "No Stats were provided",
-			ProvidedIDs: map[string]struct{}{
-				"UUID1": {},
-				"UUID2": {},
-				"UUID3": {},
+			ProvidedIDs: map[string]device.DeviceSharing{
+				"UUID1": "",
+				"UUID2": "",
+				"UUID3": "",
 			},
 		},
 		{
@@ -2173,10 +2173,10 @@ func TestWriteStatsToChannel(t *testing.T) {
 			Name:      "Check that stats with multiple DeviceNames are assigned to different groups",
 			Timestamp: time.Date(1974, time.May, 19, 1, 2, 3, 4, time.UTC),
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID1": {},
-					"UUID2": {},
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID1": "",
+					"UUID2": "",
+					"UUID3": "",
 				},
 				nvmlClient: &MockNvmlClient{
 					StatsResponseReturned: []*nvml.StatsData{
@@ -2487,10 +2487,10 @@ func TestWriteStatsToChannel(t *testing.T) {
 			Name:      "Check that stats with multiple DeviceNames are assigned to different groups 2",
 			Timestamp: time.Date(1974, time.May, 19, 1, 2, 3, 4, time.UTC),
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID1": {},
-					"UUID2": {},
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID1": "",
+					"UUID2": "",
+					"UUID3": "",
 				},
 				nvmlClient: &MockNvmlClient{
 					StatsResponseReturned: []*nvml.StatsData{
@@ -2794,9 +2794,9 @@ func TestWriteStatsToChannel(t *testing.T) {
 			Name:      "Check that only devices from NvidiaDevice.device map stats are reported",
 			Timestamp: time.Date(1974, time.May, 19, 1, 2, 3, 4, time.UTC),
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID1": {},
-					"UUID2": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID1": "",
+					"UUID2": "",
 				},
 				nvmlClient: &MockNvmlClient{
 					StatsResponseReturned: []*nvml.StatsData{

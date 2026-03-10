@@ -67,8 +67,8 @@ func TestReserve(t *testing.T) {
 				"UUID3",
 			},
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID3": "",
 				},
 				logger:  hclog.NewNullLogger(),
 				enabled: true,
@@ -88,10 +88,10 @@ func TestReserve(t *testing.T) {
 				"UUID3",
 			},
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID1": {},
-					"UUID2": {},
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID1": "",
+					"UUID2": "",
+					"UUID3": "",
 				},
 				logger:  hclog.NewNullLogger(),
 				enabled: true,
@@ -103,10 +103,10 @@ func TestReserve(t *testing.T) {
 			ExpectedError:       nil,
 			RequestedIDs:        nil,
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID1": {},
-					"UUID2": {},
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID1": "",
+					"UUID2": "",
+					"UUID3": "",
 				},
 				logger:  hclog.NewNullLogger(),
 				enabled: true,
@@ -122,10 +122,9 @@ func TestReserve(t *testing.T) {
 				"UUID3",
 			},
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID1": {},
-					"UUID2": {},
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID2": "",
+					"UUID3": "",
 				},
 				logger:  hclog.NewNullLogger(),
 				enabled: false,

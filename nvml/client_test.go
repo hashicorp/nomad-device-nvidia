@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/nomad/helper/pointer"
+	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/shoenig/test/must"
 )
 
@@ -234,6 +235,7 @@ func TestGetFingerprintDataFromNVML(t *testing.T) {
 						MemoryClockMHz:     pointer.Of(uint(100)),
 						DisplayState:       "Enabled",
 						PersistenceMode:    "Enabled",
+						SharingStatus:      device.SharingIneligible,
 					},
 					{
 						DeviceData: &DeviceData{
@@ -249,6 +251,7 @@ func TestGetFingerprintDataFromNVML(t *testing.T) {
 						MemoryClockMHz:     pointer.Of(uint(200)),
 						DisplayState:       "Enabled",
 						PersistenceMode:    "Enabled",
+						SharingStatus:      device.SharingIneligible,
 					},
 					{
 						DeviceData: &DeviceData{
@@ -264,6 +267,7 @@ func TestGetFingerprintDataFromNVML(t *testing.T) {
 						MemoryClockMHz:     pointer.Of(uint(200)),
 						DisplayState:       "Enabled",
 						PersistenceMode:    "Enabled",
+						SharingStatus:      device.SharingIneligible,
 					},
 				},
 			},
