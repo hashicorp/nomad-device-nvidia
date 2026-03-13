@@ -42,7 +42,10 @@ const (
 	MpsLogDirectoryKey  = "MPS_LOG_DIRECTORY"
 	CustomMpsUserKey    = "MPS_USER"
 
-	DefaultMpsSockFileAddr = "control"
+	DefaultMpsSockFileAddr       = "control"
+	DefaultMpsLogDirectoryValue  = "/var/log/nvidia-mps"
+	DefaultMpsPipeDirectoryValue = "/tmp/nvidia-mps"
+	DefaultMpsUserValue          = "unset"
 )
 
 var (
@@ -84,40 +87,20 @@ var (
 		),
 		"mps": hclspec.NewBlock("mps", false,
 			hclspec.NewObject(map[string]*hclspec.Spec{
-				"enabled": hclspec.NewAttr("enabled", "bool", true),
-				"mps_user": hclspec.NewDefault(
-					hclspec.NewAttr("mps_user", "string", false),
-					hclspec.NewLiteral("unset"),
-				),
-				"mps_pipe_directory": hclspec.NewDefault(
-					hclspec.NewAttr("mps_pipe_directory", "string", false),
-					hclspec.NewLiteral("/tmp/nvidia-mps"),
-				),
-				"mps_log_directory": hclspec.NewDefault(
-					hclspec.NewAttr("mps_log_directory", "string", false),
-					hclspec.NewLiteral("/var/log/nvidia-mps"),
-				),
-				"mps_sock_addr": hclspec.NewDefault(
-					hclspec.NewAttr("mps_sock_addr", "string", false),
-					hclspec.NewLiteral("control"),
-				),
+				"enabled":            hclspec.NewAttr("enabled", "bool", true),
+				"mps_user":           hclspec.NewAttr("mps_user", "string", false),
+				"mps_pipe_directory": hclspec.NewAttr("mps_log_directory", "string", false),
+				"mps_log_directory":  hclspec.NewAttr("mps_log_directory", "string", false),
+				"mps_sock_addr":      hclspec.NewAttr("mps_sock_addr", "string", false),
 				"device_specific_mps_config": hclspec.NewBlockList("device_specific_mps_config",
-					hclspec.NewArray(
-						[]*hclspec.Spec{
-							hclspec.NewObject(map[string]*hclspec.Spec{
-								"uuid": hclspec.NewAttr("uuid", "string", true),
-								"mps_pipe_directory": hclspec.NewDefault(
-									hclspec.NewAttr("mps_pipe_directory", "string", true),
-									hclspec.NewLiteral("/tmp/nvidia-mps"),
-								),
-								"mps_log_directory": hclspec.NewDefault(
-									hclspec.NewAttr("mps_log_directory", "string", true),
-									hclspec.NewLiteral("/tmp/nvidia-mps"),
-								),
-							}),
-						},
-					)),
-			})),
+					hclspec.NewObject(map[string]*hclspec.Spec{
+						"uuid":               hclspec.NewAttr("uuid", "string", true),
+						"mps_pipe_directory": hclspec.NewAttr("mps_pipe_directory", "string", true),
+						"mps_log_directory":  hclspec.NewAttr("mps_log_directory", "string", true),
+					}),
+				),
+			}),
+		),
 	})
 )
 
@@ -127,15 +110,22 @@ type Config struct {
 	IgnoredGPUIDs     []string   `codec:"ignored_gpu_ids"`
 	FingerprintPeriod string     `codec:"fingerprint_period"`
 	MpsConfig         *MpsConfig `codec:"mps"`
+	Dir               string     `codec:"dir"`
+	ListPeriod        string     `codec:"list_period"`
+	UnhealthyPerm     string     `codec:"unhealthy_perm"`
 }
 
+// MpsConfig contains configuration for mps sharing
 type MpsConfig struct {
-	MpsUser          string                     `codec:"mps_user"`
-	MpsSockFile      string                     `codec:"mps_sock_addr"`
-	MpsPipeDirectory string                     `codec:"mps_pipe_directory"`
-	MpsLogDirectory  string                     `codec:"mps_log_directory"`
-	DeviceMpsConfig  map[string]DeviceMpsConfig `codec:"device_specific_mps_config"`
+	MpsUser          string            `codec:"mps_user"`
+	MpsSockFile      string            `codec:"mps_sock_addr"`
+	MpsPipeDirectory string            `codec:"mps_pipe_directory"`
+	MpsLogDirectory  string            `codec:"mps_log_directory"`
+	DeviceConfig     []DeviceMpsConfig `codec:"device_specific_mps_config"`
+	DeviceMpsConfig  map[string]DeviceMpsConfig
 }
+
+// DeviceMpsConfig contains configuration GPU level mps sharing
 type DeviceMpsConfig struct {
 	UUID             string `codec:"uuid"`
 	MpsPipeDirectory string `codec:"mps_pipe_directory"`
@@ -196,6 +186,13 @@ func (d *NvidiaDevice) ConfigSchema() (*hclspec.Spec, error) {
 	return configSpec, nil
 }
 
+func selectConfigOrDefault(c string, d string) string {
+	if config := c; config != "" {
+		return c
+	}
+	return d
+}
+
 // SetConfig is used to set the configuration of the plugin.
 func (d *NvidiaDevice) SetConfig(cfg *base.Config) error {
 	var config Config
@@ -208,23 +205,23 @@ func (d *NvidiaDevice) SetConfig(cfg *base.Config) error {
 	// set MPS config values
 	if config.MpsConfig != nil {
 		// ensure only global or device specific config are set
-		if config.MpsConfig.MpsPipeDirectory != "" || config.MpsConfig.MpsLogDirectory != "" &&
+		if (config.MpsConfig.MpsPipeDirectory != "" || config.MpsConfig.MpsLogDirectory != "") &&
 			len(config.MpsConfig.DeviceMpsConfig) != 0 {
-			return errors.New("only global mps variables or device_specific_mps_config block may be set ")
+			return errors.New("only top level mps directory variables or device_specific_mps_config block may be set ")
 		}
+		// set top level only mps values
+		d.MpsConfig.MpsUser = selectConfigOrDefault(config.MpsConfig.MpsUser, "unset")
+		d.MpsConfig.MpsSockFile = selectConfigOrDefault(config.MpsConfig.MpsSockFile, DefaultMpsSockFileAddr)
 
-		// set straightforward value on device
-		d.MpsConfig.MpsUser = config.MpsConfig.MpsUser
-		d.MpsConfig.MpsSockFile = DefaultMpsSockFileAddr
-		// overwrite sock file addr if set
-		if config.MpsConfig.MpsSockFile != "" {
-			d.MpsConfig.MpsSockFile = config.MpsConfig.MpsSockFile
-		}
-		// if present set device specific mps config, otherwise set top level config
-		if len(config.MpsConfig.DeviceMpsConfig) != 0 {
-
+		// if no device specific config, set top level values
+		// otherwise set device level config
+		if len(config.MpsConfig.DeviceMpsConfig) == 0 {
+			d.MpsConfig.MpsPipeDirectory = selectConfigOrDefault(config.MpsConfig.MpsPipeDirectory, DefaultMpsPipeDirectoryValue)
+			d.MpsConfig.MpsLogDirectory = selectConfigOrDefault(config.MpsConfig.MpsLogDirectory, DefaultMpsLogDirectoryValue)
+		} else {
 			// build map of device UUIDs to config
 			deviceConfigMap := make(map[string]DeviceMpsConfig, len(config.MpsConfig.DeviceMpsConfig))
+
 			for _, devConfig := range config.MpsConfig.DeviceMpsConfig {
 				deviceConfigMap[devConfig.UUID] = DeviceMpsConfig{
 					UUID:             devConfig.UUID,
@@ -234,11 +231,6 @@ func (d *NvidiaDevice) SetConfig(cfg *base.Config) error {
 			}
 			// set device specific mpsConfig
 			d.MpsConfig.DeviceMpsConfig = deviceConfigMap
-		} else {
-			// set top level mps directories if no device specific config
-			// we have defaults so always use config values
-			d.MpsConfig.MpsPipeDirectory = config.MpsConfig.MpsPipeDirectory
-			d.MpsConfig.MpsLogDirectory = config.MpsConfig.MpsLogDirectory
 		}
 	}
 	for _, ignoredGPUId := range config.IgnoredGPUIDs {
@@ -308,29 +300,36 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 		if _, deviceIDExists := d.devices[id]; !deviceIDExists {
 			notExistingIDs = append(notExistingIDs, id)
 		}
+
 		// if set, build mps environment variables
 		if d.MpsConfig != nil {
+			// check for custom user and add to envar map
+			if d.MpsConfig.MpsUser != "unset" {
+				containerEnvs[CustomMpsUserKey] = d.MpsConfig.MpsUser
+			}
 			// pass along top-level mounts and envs if mps != nil and no
 			// device specific config exists
 			if len(d.MpsConfig.DeviceMpsConfig) == 0 {
 				containerEnvs[MpsPipeDirectoryKey] = d.MpsConfig.MpsPipeDirectory
 				containerEnvs[MpsLogDirectoryKey] = d.MpsConfig.MpsLogDirectory
+
+				reservedDeviceIDs = append(reservedDeviceIDs, id)
+				continue
+			}
+
+			// build appropriate mounts and envs if device specific config exists
+			// and the specific device is in the map
+			if c, ok := d.MpsConfig.DeviceMpsConfig[id]; ok {
 				reservedDeviceIDs = append(reservedDeviceIDs, id)
 
-			} else {
-				// build appropriate mounts and envs if device specific config exists
-				// and the specific device is in the map
-				if c, ok := d.MpsConfig.DeviceMpsConfig[id]; ok {
-					reservedDeviceIDs = append(reservedDeviceIDs, id)
-
-					// each task definition must target a single MPS server so
-					// use the first deviceID to look up and set envvars
-					if i == 0 {
-						containerEnvs[MpsPipeDirectoryKey] = c.MpsPipeDirectory
-						containerEnvs[MpsLogDirectoryKey] = c.MpsLogDirectory
-					}
+				// each task definition must target a single MPS server so
+				// use the first deviceID to look up and set envvars
+				if i == 0 {
+					containerEnvs[MpsPipeDirectoryKey] = c.MpsPipeDirectory
+					containerEnvs[MpsLogDirectoryKey] = c.MpsLogDirectory
 				}
 			}
+
 		}
 	}
 
@@ -338,23 +337,23 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 	if len(notExistingIDs) != 0 {
 		return nil, &reservationError{notExistingIDs}
 	}
-
+	// return all available devices if mps is not set
 	if d.MpsConfig == nil {
 		return &device.ContainerReservation{
 			Envs: map[string]string{NvidiaVisibleDevices: strings.Join(deviceIDs, ",")},
 		}, nil
-
-	} else {
-		containerEnvs[NvidiaVisibleDevices] = strings.Join(reservedDeviceIDs, ",")
-		return &device.ContainerReservation{
-			Envs: containerEnvs,
-			Mounts: []*device.Mount{{
-				HostPath: containerEnvs[MpsPipeDirectoryKey],
-				TaskPath: containerEnvs[MpsPipeDirectoryKey],
-				ReadOnly: false,
-			}},
-		}, nil
 	}
+
+	// if mps is set return configured devices and mounts
+	containerEnvs[NvidiaVisibleDevices] = strings.Join(reservedDeviceIDs, ",")
+	return &device.ContainerReservation{
+		Envs: containerEnvs,
+		Mounts: []*device.Mount{{
+			HostPath: containerEnvs[MpsPipeDirectoryKey],
+			TaskPath: containerEnvs[MpsPipeDirectoryKey],
+			ReadOnly: false,
+		}},
+	}, nil
 }
 
 // Stats streams statistics for the detected devices.

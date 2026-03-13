@@ -31,7 +31,7 @@ type FingerprintDeviceData struct {
 	DisplayState       string
 	PersistenceMode    string
 	PCIBusID           string
-	SharingStatus      device.DeviceSharing
+	Shared             device.DeviceSharing
 }
 
 // FingerprintData represets attributes of driver/devices
@@ -120,7 +120,7 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 			continue
 		}
 		// only set sharing status for mig devices in the client
-		// otherwise leave nil for device driver to set
+		// otherwise leave for device driver to set
 		var sharingStatus device.DeviceSharing
 		if mode == mig {
 			sharingStatus = device.SharingIneligible
@@ -144,7 +144,7 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 			DisplayState:       deviceInfo.DisplayState,
 			PersistenceMode:    deviceInfo.PersistenceMode,
 			PCIBusID:           deviceInfo.PCIBusID,
-			SharingStatus:      sharingStatus,
+			Shared:             sharingStatus,
 		})
 
 		slices.SortFunc(allNvidiaGPUResources, func(a, b *FingerprintDeviceData) int {
