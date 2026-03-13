@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
@@ -27,7 +26,7 @@ const (
 	PCIBandwidthAttr    = "pci_bandwidth"
 	DisplayStateAttr    = "display_state"
 	PersistenceModeAttr = "persistence_mode"
-	SharingStatus       = "sharing_status"
+	Shared              = "shared"
 )
 
 // fingerprint is the long running goroutine that detects hardware
@@ -77,26 +76,26 @@ func (d *NvidiaDevice) writeFingerprintToChannel(ctx context.Context, devices ch
 			fingerprintDevices := ignoreFingerprintedDevices(fingerprintData.Devices, d.ignoredGPUIDs)
 
 			for _, dev := range fingerprintDevices {
-				//set all devices as inactive if mpsConfig is nil
+				//set device.SharingUnset if mpsConfig is nil
 				if d.MpsConfig == nil {
-					dev.SharingStatus = device.SharingInactive
+					dev.Shared = device.SharingUnset
 					continue
 				}
 				// skip mig mode devices marked ineligible by the client
-				if dev.SharingStatus != device.SharingIneligible {
+				if dev.Shared != device.SharingIneligible {
 					continue
 				}
 
-				// set all eligible devices at once if globalPipeDirectory is set
+				// if set, use top level pipe directory to check if socket is active
 				if d.MpsConfig.MpsPipeDirectory != "" {
-					dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", d.MpsConfig.MpsPipeDirectory)
+					dev.Shared = d.getDeviceSharingStatus("unixpacket", d.MpsConfig.MpsPipeDirectory)
 					continue
 				}
 
-				// otherwise lookup appropriate pipe directory by deviceUUID
+				// otherwise lookup appropriate socket locationß by deviceUUID
 				if len(d.MpsConfig.DeviceMpsConfig) != 0 {
 					devConfig := d.MpsConfig.DeviceMpsConfig[dev.UUID]
-					dev.SharingStatus = d.getDeviceSharingStatus("unixpacket", devConfig.MpsPipeDirectory)
+					dev.Shared = d.getDeviceSharingStatus("unixpacket", devConfig.MpsPipeDirectory)
 				}
 			}
 			// check if any device health was updated or any device was added to host
@@ -110,8 +109,8 @@ func (d *NvidiaDevice) writeFingerprintToChannel(ctx context.Context, devices ch
 				},
 			}
 
-			// Group all FingerprintDevices by DeviceName and SharingStatus attributes
-			deviceListByDeviceNameAndSharing := make(map[string][]*nvml.FingerprintDeviceData)
+			// Group all FingerprintDevices by DeviceName and Shared attributes
+			deviceListByDeviceName := make(map[string][]*nvml.FingerprintDeviceData)
 
 			for _, dev := range fingerprintDevices {
 				var deviceName string
@@ -124,14 +123,13 @@ func (d *NvidiaDevice) writeFingerprintToChannel(ctx context.Context, devices ch
 				} else {
 					deviceName = *dev.DeviceName
 				}
-				sharingName := fmt.Sprintf("%s.%s", deviceName, dev.SharingStatus)
-				deviceListByDeviceNameAndSharing[sharingName] = append(deviceListByDeviceNameAndSharing[sharingName], dev)
+				deviceListByDeviceName[deviceName] = append(deviceListByDeviceName[deviceName], dev)
 
 			}
 
 			// Build Fingerprint response with computed groups and send it over the channel
-			deviceGroups := make([]*device.DeviceGroup, 0, len(deviceListByDeviceNameAndSharing))
-			for groupName, devices := range deviceListByDeviceNameAndSharing {
+			deviceGroups := make([]*device.DeviceGroup, 0, len(deviceListByDeviceName))
+			for groupName, devices := range deviceListByDeviceName {
 				deviceGroups = append(deviceGroups, deviceGroupFromFingerprintData(groupName, devices, commonAttributes))
 			}
 			devices <- device.NewFingerprint(deviceGroups...)
@@ -161,7 +159,7 @@ func (d *NvidiaDevice) fingerprintChanged(allDevices []*nvml.FingerprintDeviceDa
 	changeDetected := false
 	// check if every device in allDevices is in d.devices
 	for _, dev := range allDevices {
-		if status, ok := d.devices[dev.UUID]; !ok || status != dev.SharingStatus {
+		if status, ok := d.devices[dev.UUID]; !ok || status != dev.Shared {
 			changeDetected = true
 		}
 
@@ -173,7 +171,7 @@ func (d *NvidiaDevice) fingerprintChanged(allDevices []*nvml.FingerprintDeviceDa
 
 		// include  sharing status in the fingerprintDeviceMap
 		// that gets saved to the device
-		fingerprintDeviceMap[dev.UUID] = dev.SharingStatus
+		fingerprintDeviceMap[dev.UUID] = dev.Shared
 	}
 	for id := range d.devices {
 		if _, ok := fingerprintDeviceMap[id]; !ok {
@@ -190,12 +188,6 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 	// deviceGroup without devices makes no sense -> return nil when no devices are provided
 	if len(deviceList) == 0 {
 		return nil
-	}
-	// get sharingStatus from groupName to set as attribute
-	var sharingStatus string
-	nameSlice := strings.Split(groupName, ".")
-	if len(nameSlice) == 2 {
-		sharingStatus = nameSlice[1]
 	}
 
 	devices := make([]*device.Device, len(deviceList))
@@ -218,7 +210,7 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 		Devices: devices,
 		// Assumption made that devices with the same DeviceName have the same
 		// attributes like amount of memory, power, bar1memory etc
-		Attributes: attributesFromFingerprintDeviceData(deviceList[0], sharingStatus),
+		Attributes: attributesFromFingerprintDeviceData(deviceList[0]),
 	}
 
 	// Extend attribute map with common attributes
@@ -232,7 +224,7 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 // attributesFromFingerprintDeviceData converts nvml.FingerprintDeviceData
 // struct to device.DeviceGroup.Attributes format (map[string]string)
 // this function performs all nil checks for FingerprintDeviceData pointers
-func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData, sharingStatus string) map[string]*structs.Attribute {
+func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData) map[string]*structs.Attribute {
 	attrs := map[string]*structs.Attribute{
 		DisplayStateAttr: {
 			String: pointer.Of(d.DisplayState),
@@ -278,9 +270,9 @@ func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData, sharingS
 			Unit: structs.UnitMBPerS,
 		}
 	}
-	if sharingStatus != "" {
-		attrs[SharingStatus] = &structs.Attribute{
-			String: &sharingStatus,
+	if d.Shared != device.SharingUnset {
+		attrs[Shared] = &structs.Attribute{
+			String: pointer.Of(d.Shared.String()),
 		}
 	}
 
