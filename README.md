@@ -32,6 +32,15 @@ must belong to the same user
 ## Config
 The plugin is configured in the Nomad client's
 [`plugin`](https://www.nomadproject.io/docs/configuration/plugin) block:
+<!-- This table is defined in HTML rather than markdown to be able to show the full config in code side by side-->
+<table>
+  <tr>
+    <th>Complete configuration for single MPS context </th>
+    <th> Complete configuration in multi-GPU MPS context</th>
+  </tr>
+
+   <tr>
+    <td valign="top">
 
 ```hcl
 plugin "nvidia" {
@@ -39,12 +48,16 @@ plugin "nvidia" {
     ignored_gpu_ids    = ["uuid1", "uuid2"]
     fingerprint_period = "5s"
     mps {
+      enabled = true
+      mps_user = "mps-user-when-different-from-task-user"
       mps_pipe_directory = "/tmp/nvidia-mps"
       mps_log_directory = "var/log/nvidia-mps"
     }
   }
 }
 ```
+  </td>
+  <td>
 
 ```hcl
 plugin "nvidia" {
@@ -52,7 +65,8 @@ plugin "nvidia" {
     ignored_gpu_ids    = ["uuid1", "uuid2"]
     fingerprint_period = "5s"
     mps {
-      mps_user = "non-root-user-who-owns-mps-server-and-container-tasks"
+      enabled = true
+      mps_user =  "mps-user-when-different-from-task-user"
       device_specific_mps_config [
         {
           uuid = "GPU-1234"
@@ -69,6 +83,8 @@ plugin "nvidia" {
   }
 }
 ```
+</tr>
+</table>
 The valid configuration options are:
 
 * `ignored_gpu_ids` (`list(string)`: `[]`): list of GPU UUIDs strings that
@@ -78,7 +94,13 @@ The valid configuration options are:
 * `mps` (`block`): optional mps configuration spec
 
   * `enabled` (`bool`): required
-  * `mps_pipe_directory` (`string`: `"/tmp/nvidia-mps"`): optional top level key, defaults to nvidia standard location if `enabled` is the only key set in the mps block . Incompatible with `device_specific_mps_config`
-  * `mps_log_directory` (`string`: `"/var/log/nvidia-mps"`): optional top level key, defaults to nvidia standard location if `enabled` is the only key set in the mps block. Incompatible with `device_specific_mps_config`
-  * `mps_user` (`string`: `"unset"`): optional key, defaults to `unset`. This value should only be set if the user that owns the MPS server is different from the user that owns Nomad tasks.
-  * `device_specific_mps_config` (`list(map[string]string)`): optional list of GPU UUIDs and their associated mps_pipe_directory and mps_log_directory locations for use in a multi-GPU environment where multiple MPS servers control different GPU devices. Incompatible with top level `mps_log_directory` and `mps_pipe_directory` keys.
+  * `mps_pipe_directory` (`string`: `"/tmp/nvidia-mps"`): optional top level key, defaults to nvidia standard location if `enabled` is the only key
+  set in the mps block . Incompatible with `device_specific_mps_config`
+  * `mps_log_directory` (`string`: `"/var/log/nvidia-mps"`): optional top level key, defaults to nvidia standard location if `enabled` is the only
+  key set in the mps block. Incompatible with `device_specific_mps_config`
+  * `mps_user` (`string`: `"unset"`): optional key. This value should only be set if the user that owns the MPS server is different from the user
+  that owns Nomad tasks.
+
+  * `device_specific_mps_config` (`list(map[string]string)`): optional list of GPU UUIDs and their associated `mps_pipe_directory` and
+  `mps_log_directory` locations for use in a multi-GPU environment where multiple MPS servers control different GPU devices. Incompatible with top
+  level `mps_log_directory` and `mps_pipe_directory` keys.
