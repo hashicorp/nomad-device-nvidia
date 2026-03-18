@@ -200,6 +200,7 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 			HwLocality: &device.DeviceLocality{
 				PciBusID: dev.PCIBusID,
 			},
+			Shared: &dev.Shared,
 		}
 	}
 

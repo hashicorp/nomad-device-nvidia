@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/shoenig/test/must"

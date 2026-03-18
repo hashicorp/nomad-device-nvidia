@@ -8,6 +8,8 @@ replace github.com/armon/go-metrics => github.com/armon/go-metrics v0.0.0-202305
 // switched to a broken vanity url
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
+replace github.com/hashicorp/nomad v1.11.0-rc.1.0.20260306160642-d13a104dc18a => ../nomad
+
 require (
 	github.com/NVIDIA/go-nvml v0.13.0-1
 	github.com/hashicorp/go-hclog v1.6.3
