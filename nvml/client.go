@@ -7,6 +7,8 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
+
+	"github.com/hashicorp/nomad/plugins/device"
 )
 
 // DeviceData represents common fields for Nvidia device
@@ -29,6 +31,7 @@ type FingerprintDeviceData struct {
 	DisplayState       string
 	PersistenceMode    string
 	PCIBusID           string
+	Shared             device.DeviceSharing
 }
 
 // FingerprintData represets attributes of driver/devices
@@ -116,7 +119,12 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 		if mode == parent {
 			continue
 		}
-
+		// only set sharing status for mig devices in the client
+		// otherwise leave for device driver to set
+		var sharingStatus device.DeviceSharing
+		if mode == mig {
+			sharingStatus = device.SharingIneligible
+		}
 		deviceInfo, err := c.driver.DeviceInfoByUUID(uuid)
 		if err != nil {
 			return nil, fmt.Errorf("nvidia nvml DeviceInfoByUUID() error: %w", err)
@@ -136,6 +144,7 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 			DisplayState:       deviceInfo.DisplayState,
 			PersistenceMode:    deviceInfo.PersistenceMode,
 			PCIBusID:           deviceInfo.PCIBusID,
+			Shared:             sharingStatus,
 		})
 
 		slices.SortFunc(allNvidiaGPUResources, func(a, b *FingerprintDeviceData) int {

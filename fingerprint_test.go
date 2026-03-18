@@ -4,8 +4,12 @@
 package nvidia
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"net"
+	"os"
 	"sort"
 	"testing"
 
@@ -213,15 +217,15 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 		Name                     string
 		Device                   *NvidiaDevice
 		AllDevices               []*nvml.FingerprintDeviceData
-		DeviceMapAfterMethodCall map[string]struct{}
+		DeviceMapAfterMethodCall map[string]device.DeviceSharing
 		ExpectedResult           bool
 	}{
 		{
 			Name: "No updates",
-			Device: &NvidiaDevice{devices: map[string]struct{}{
-				"1": {},
-				"2": {},
-				"3": {},
+			Device: &NvidiaDevice{devices: map[string]device.DeviceSharing{
+				"1": "",
+				"2": "",
+				"3": "",
 			}},
 			AllDevices: []*nvml.FingerprintDeviceData{
 				{
@@ -241,18 +245,18 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 				},
 			},
 			ExpectedResult: false,
-			DeviceMapAfterMethodCall: map[string]struct{}{
-				"1": {},
-				"2": {},
-				"3": {},
+			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{
+				"1": "",
+				"2": "",
+				"3": "",
 			},
 		},
 		{
 			Name: "New Device Appeared",
-			Device: &NvidiaDevice{devices: map[string]struct{}{
-				"1": {},
-				"2": {},
-				"3": {},
+			Device: &NvidiaDevice{devices: map[string]device.DeviceSharing{
+				"1": "",
+				"2": "",
+				"3": "",
 			}},
 			AllDevices: []*nvml.FingerprintDeviceData{
 				{
@@ -277,19 +281,19 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 				},
 			},
 			ExpectedResult: true,
-			DeviceMapAfterMethodCall: map[string]struct{}{
-				"1":        {},
-				"2":        {},
-				"3":        {},
-				"I am new": {},
+			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{
+				"1":        "",
+				"2":        "",
+				"3":        "",
+				"I am new": "",
 			},
 		},
 		{
 			Name: "Device disappeared",
-			Device: &NvidiaDevice{devices: map[string]struct{}{
-				"1": {},
-				"2": {},
-				"3": {},
+			Device: &NvidiaDevice{devices: map[string]device.DeviceSharing{
+				"1": "",
+				"2": "",
+				"3": "",
 			}},
 			AllDevices: []*nvml.FingerprintDeviceData{
 				{
@@ -304,9 +308,9 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 				},
 			},
 			ExpectedResult: true,
-			DeviceMapAfterMethodCall: map[string]struct{}{
-				"1": {},
-				"2": {},
+			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{
+				"1": "",
+				"2": "",
 			},
 		},
 		{
@@ -330,22 +334,22 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 				},
 			},
 			ExpectedResult: true,
-			DeviceMapAfterMethodCall: map[string]struct{}{
-				"1": {},
-				"2": {},
-				"3": {},
+			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{
+				"1": "",
+				"2": "",
+				"3": "",
 			},
 		},
 		{
 			Name: "No devices detected",
-			Device: &NvidiaDevice{devices: map[string]struct{}{
-				"1": {},
-				"2": {},
-				"3": {},
+			Device: &NvidiaDevice{devices: map[string]device.DeviceSharing{
+				"1": "",
+				"2": "",
+				"3": "",
 			}},
 			AllDevices:               nil,
 			ExpectedResult:           true,
-			DeviceMapAfterMethodCall: map[string]struct{}{},
+			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{},
 		},
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
@@ -412,6 +416,9 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 				PersistenceModeAttr: {
 					String: pointer.Of("Enabled"),
 				},
+				Shared: {
+					String: pointer.Of("inactive"),
+				},
 			},
 		},
 		{
@@ -442,6 +449,9 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 				},
 				PersistenceModeAttr: {
 					String: pointer.Of("Enabled"),
+				},
+				Shared: {
+					String: pointer.Of("inactive"),
 				},
 			},
 		},
@@ -734,7 +744,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 					{
 						Vendor: vendor,
 						Type:   deviceType,
-						Name:   "Name",
+						Name:   "Name.inactive",
 						Devices: []*device.Device{
 							{
 								ID:      "2",
@@ -777,6 +787,9 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
+							},
+							Shared: {
+								String: pointer.Of("inactive"),
 							},
 						},
 					},
@@ -845,7 +858,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 					{
 						Vendor: vendor,
 						Type:   deviceType,
-						Name:   "Name1",
+						Name:   "Name1.inactive",
 						Devices: []*device.Device{
 							{
 								ID:      "1",
@@ -889,12 +902,15 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
+							Shared: {
+								String: pointer.Of("inactive"),
+							},
 						},
 					},
 					{
 						Vendor: vendor,
 						Type:   deviceType,
-						Name:   "Name2",
+						Name:   "Name2.inactive",
 						Devices: []*device.Device{
 							{
 								ID:      "2",
@@ -938,12 +954,15 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
+							Shared: {
+								String: pointer.Of("inactive"),
+							},
 						},
 					},
 					{
 						Vendor: vendor,
 						Type:   deviceType,
-						Name:   "Name3",
+						Name:   "Name3.inactive",
 						Devices: []*device.Device{
 							{
 								ID:      "3",
@@ -986,6 +1005,9 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
+							},
+							Shared: {
+								String: pointer.Of("inactive"),
 							},
 						},
 					},
@@ -1054,7 +1076,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 					{
 						Vendor: vendor,
 						Type:   deviceType,
-						Name:   "Name1",
+						Name:   "Name1.inactive",
 						Devices: []*device.Device{
 							{
 								ID:      "1",
@@ -1098,12 +1120,15 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
+							Shared: {
+								String: pointer.Of("inactive"),
+							},
 						},
 					},
 					{
 						Vendor: vendor,
 						Type:   deviceType,
-						Name:   "Name2",
+						Name:   "Name2.inactive",
 						Devices: []*device.Device{
 							{
 								ID:      "2",
@@ -1154,6 +1179,9 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
+							Shared: {
+								String: pointer.Of("inactive"),
+							},
 						},
 					},
 				},
@@ -1162,7 +1190,8 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
 			channel := make(chan *device.FingerprintResponse, 1)
-			testCase.Device.writeFingerprintToChannel(channel)
+			ctx := context.Background()
+			testCase.Device.writeFingerprintToChannel(ctx, channel)
 			actualResult := <-channel
 			// writeFingerprintToChannel iterates over map keys
 			// and insterts results to an array, so order of elements in output array
@@ -1249,7 +1278,7 @@ func TestFingerprint(t *testing.T) {
 					{
 						Vendor: vendor,
 						Type:   deviceType,
-						Name:   "Name1",
+						Name:   "Name1.inactive",
 						Devices: []*device.Device{
 							{
 								ID:      "1",
@@ -1307,6 +1336,9 @@ func TestFingerprint(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
+							Shared: {
+								String: pointer.Of("inactive"),
+							},
 						},
 					},
 				},
@@ -1358,6 +1390,73 @@ func TestFingerprint(t *testing.T) {
 			result := <-outCh
 			cancel()
 			must.Eq(t, result, testCase.ExpectedWriteToChannel)
+		})
+	}
+}
+
+func TestGetDeviceSharingStatus(t *testing.T) {
+	var buf bytes.Buffer
+	logger := hclog.New(&hclog.LoggerOptions{
+		Name:   "test-device",
+		Output: &buf, // Assign the pointer to the buffer
+		Level:  hclog.Info,
+	})
+
+	d := &NvidiaDevice{
+		logger: logger,
+		MpsConfig: &MpsConfig{
+			MpsUser:          "unset",
+			MpsPipeDirectory: "/tmp/nvidia-mps",
+			MpsLogDirectory:  "/var/log/nvidia-mps",
+			MpsSockFile:      "control",
+		},
+	}
+	tmpDir := os.TempDir()
+	socketPath := tmpDir + "control"
+	cases := []struct {
+		name      string
+		mpsDir    string
+		expStatus device.DeviceSharing
+		expLog    string
+		ndevice   *NvidiaDevice
+	}{
+		{
+			name:      "ok",
+			mpsDir:    tmpDir,
+			expStatus: device.SharingActive,
+			ndevice:   d,
+		},
+		{
+			name:      "inactive",
+			mpsDir:    tmpDir,
+			expStatus: device.SharingInactive,
+			expLog:    "failed to reach mps daemon after 5 attempts",
+			ndevice:   d,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			os.Remove(socketPath)
+			// getDeviceSharingStatus takes a dialtype parameter for testability
+			// because the actual daemon requires unixgram but the Listen func
+			// doesn't support that protocol
+			listener, err := net.Listen("unix", socketPath)
+			must.NoError(t, err)
+			defer listener.Close()
+
+			fmt.Println("Daemon listening on", socketPath)
+
+			if tc.name == "inactive" {
+				listener.Close()
+			}
+
+			status := tc.ndevice.getDeviceSharingStatus("unix", tc.mpsDir)
+			must.Eq(t, tc.expStatus, status)
+
+			if tc.expStatus == device.SharingInactive {
+				must.StrContains(t, buf.String(), tc.expLog)
+			}
+
 		})
 	}
 }

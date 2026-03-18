@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/shoenig/test/must"
@@ -67,8 +68,8 @@ func TestReserve(t *testing.T) {
 				"UUID3",
 			},
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID3": "",
 				},
 				logger:  hclog.NewNullLogger(),
 				enabled: true,
@@ -88,10 +89,10 @@ func TestReserve(t *testing.T) {
 				"UUID3",
 			},
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID1": {},
-					"UUID2": {},
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID1": "",
+					"UUID2": "",
+					"UUID3": "",
 				},
 				logger:  hclog.NewNullLogger(),
 				enabled: true,
@@ -103,10 +104,10 @@ func TestReserve(t *testing.T) {
 			ExpectedError:       nil,
 			RequestedIDs:        nil,
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID1": {},
-					"UUID2": {},
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID1": "",
+					"UUID2": "",
+					"UUID3": "",
 				},
 				logger:  hclog.NewNullLogger(),
 				enabled: true,
@@ -122,10 +123,9 @@ func TestReserve(t *testing.T) {
 				"UUID3",
 			},
 			Device: &NvidiaDevice{
-				devices: map[string]struct{}{
-					"UUID1": {},
-					"UUID2": {},
-					"UUID3": {},
+				devices: map[string]device.DeviceSharing{
+					"UUID2": "",
+					"UUID3": "",
 				},
 				logger:  hclog.NewNullLogger(),
 				enabled: false,
