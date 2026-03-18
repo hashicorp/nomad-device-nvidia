@@ -457,7 +457,7 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 		},
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
-			actualResult := attributesFromFingerprintDeviceData(testCase.FingerprintDeviceData, "inactive")
+			actualResult := attributesFromFingerprintDeviceData(testCase.FingerprintDeviceData)
 			must.Eq(t, testCase.ExpectedResult, actualResult)
 		})
 	}
