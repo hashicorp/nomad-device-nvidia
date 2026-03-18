@@ -89,7 +89,7 @@ var (
 			hclspec.NewObject(map[string]*hclspec.Spec{
 				"enabled":            hclspec.NewAttr("enabled", "bool", true),
 				"mps_user":           hclspec.NewAttr("mps_user", "string", false),
-				"mps_pipe_directory": hclspec.NewAttr("mps_log_directory", "string", false),
+				"mps_pipe_directory": hclspec.NewAttr("mps_pipe_directory", "string", false),
 				"mps_log_directory":  hclspec.NewAttr("mps_log_directory", "string", false),
 				"mps_sock_addr":      hclspec.NewAttr("mps_sock_addr", "string", false),
 				"device_specific_mps_config": hclspec.NewBlockList("device_specific_mps_config",
@@ -204,6 +204,7 @@ func (d *NvidiaDevice) SetConfig(cfg *base.Config) error {
 
 	// set MPS config values
 	if config.MpsConfig != nil {
+		d.MpsConfig = &MpsConfig{}
 		// ensure only global or device specific config are set
 		if (config.MpsConfig.MpsPipeDirectory != "" || config.MpsConfig.MpsLogDirectory != "") &&
 			len(config.MpsConfig.DeviceMpsConfig) != 0 {
