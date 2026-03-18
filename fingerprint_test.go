@@ -416,7 +416,7 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 				PersistenceModeAttr: {
 					String: pointer.Of("Enabled"),
 				},
-				SharingStatus: {
+				Shared: {
 					String: pointer.Of("inactive"),
 				},
 			},
@@ -450,7 +450,7 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 				PersistenceModeAttr: {
 					String: pointer.Of("Enabled"),
 				},
-				SharingStatus: {
+				Shared: {
 					String: pointer.Of("inactive"),
 				},
 			},
@@ -788,7 +788,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
-							SharingStatus: {
+							Shared: {
 								String: pointer.Of("inactive"),
 							},
 						},
@@ -902,7 +902,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
-							SharingStatus: {
+							Shared: {
 								String: pointer.Of("inactive"),
 							},
 						},
@@ -954,7 +954,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
-							SharingStatus: {
+							Shared: {
 								String: pointer.Of("inactive"),
 							},
 						},
@@ -1006,7 +1006,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
-							SharingStatus: {
+							Shared: {
 								String: pointer.Of("inactive"),
 							},
 						},
@@ -1120,7 +1120,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
-							SharingStatus: {
+							Shared: {
 								String: pointer.Of("inactive"),
 							},
 						},
@@ -1179,7 +1179,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
-							SharingStatus: {
+							Shared: {
 								String: pointer.Of("inactive"),
 							},
 						},
@@ -1336,7 +1336,7 @@ func TestFingerprint(t *testing.T) {
 							DriverVersionAttr: {
 								String: pointer.Of("1"),
 							},
-							SharingStatus: {
+							Shared: {
 								String: pointer.Of("inactive"),
 							},
 						},
