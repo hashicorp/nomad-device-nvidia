@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
-	"github.com/hashicorp/nomad/helper/pointer"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/hashicorp/nomad/plugins/shared/structs"
 )
@@ -105,7 +104,7 @@ func (d *NvidiaDevice) writeFingerprintToChannel(ctx context.Context, devices ch
 
 			commonAttributes := map[string]*structs.Attribute{
 				DriverVersionAttr: {
-					String: pointer.Of(fingerprintData.DriverVersion),
+					String: new(fingerprintData.DriverVersion),
 				},
 			}
 
@@ -166,7 +165,7 @@ func (d *NvidiaDevice) fingerprintChanged(allDevices []*nvml.FingerprintDeviceDa
 	}
 
 	// check if every device in d.devices is in allDevices
-	fingerprintDeviceMap := make(map[string]device.DeviceSharing)
+	fingerprintDeviceMap := make(map[string]device.Shared)
 	for _, dev := range allDevices {
 
 		// include  sharing status in the fingerprintDeviceMap
@@ -231,58 +230,55 @@ func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData) map[stri
 			String: new(d.DisplayState),
 		},
 		PersistenceModeAttr: {
-			String: pointer.Of(d.PersistenceMode),
+			String: new(d.PersistenceMode),
+		},
+		Shared: {
+			String: new(d.Shared.String()),
 		},
 	}
 
 	if d.MemoryMiB != nil {
 		attrs[MemoryAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.MemoryMiB)),
+			Int:  new(int64(*d.MemoryMiB)),
 			Unit: structs.UnitMiB,
 		}
 	}
 	if d.PowerW != nil {
 		attrs[PowerAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.PowerW)),
+			Int:  new(int64(*d.PowerW)),
 			Unit: structs.UnitW,
 		}
 	}
 	if d.BAR1MiB != nil {
 		attrs[BAR1Attr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.BAR1MiB)),
+			Int:  new(int64(*d.BAR1MiB)),
 			Unit: structs.UnitMiB,
 		}
 	}
 	if d.CoresClockMHz != nil {
 		attrs[CoresClockAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.CoresClockMHz)),
+			Int:  new(int64(*d.CoresClockMHz)),
 			Unit: structs.UnitMHz,
 		}
 	}
 	if d.MemoryClockMHz != nil {
 		attrs[MemoryClockAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.MemoryClockMHz)),
+			Int:  new(int64(*d.MemoryClockMHz)),
 			Unit: structs.UnitMHz,
 		}
 	}
 	if d.PCIBandwidthMBPerS != nil {
 		attrs[PCIBandwidthAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.PCIBandwidthMBPerS)),
+			Int:  new(int64(*d.PCIBandwidthMBPerS)),
 			Unit: structs.UnitMBPerS,
 		}
 	}
-	if d.Shared != device.SharingUnset {
-		attrs[Shared] = &structs.Attribute{
-			String: pointer.Of(d.Shared.String()),
-		}
-	}
-
 	return attrs
 }
 
 // getDeviceSharingStatus attempts to connect to the mps-control socket
 // using the configured mps_pip_directory
-func (d *NvidiaDevice) getDeviceSharingStatus(dialtype string, mps_pipe_directory string) device.DeviceSharing {
+func (d *NvidiaDevice) getDeviceSharingStatus(dialtype string, mps_pipe_directory string) device.Shared {
 	sockAddr := mps_pipe_directory + d.MpsConfig.MpsSockFile
 	tries := 0
 	for tries < 5 {
