@@ -68,7 +68,7 @@ func TestReserve(t *testing.T) {
 				"UUID3",
 			},
 			Device: &NvidiaDevice{
-				devices: map[string]device.DeviceSharing{
+				devices: map[string]device.Shared{
 					"UUID3": "",
 				},
 				logger:  hclog.NewNullLogger(),
@@ -89,7 +89,7 @@ func TestReserve(t *testing.T) {
 				"UUID3",
 			},
 			Device: &NvidiaDevice{
-				devices: map[string]device.DeviceSharing{
+				devices: map[string]device.Shared{
 					"UUID1": "",
 					"UUID2": "",
 					"UUID3": "",
@@ -104,7 +104,7 @@ func TestReserve(t *testing.T) {
 			ExpectedError:       nil,
 			RequestedIDs:        nil,
 			Device: &NvidiaDevice{
-				devices: map[string]device.DeviceSharing{
+				devices: map[string]device.Shared{
 					"UUID1": "",
 					"UUID2": "",
 					"UUID3": "",
@@ -123,7 +123,7 @@ func TestReserve(t *testing.T) {
 				"UUID3",
 			},
 			Device: &NvidiaDevice{
-				devices: map[string]device.DeviceSharing{
+				devices: map[string]device.Shared{
 					"UUID2": "",
 					"UUID3": "",
 				},

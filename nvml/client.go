@@ -31,7 +31,7 @@ type FingerprintDeviceData struct {
 	DisplayState       string
 	PersistenceMode    string
 	PCIBusID           string
-	Shared             device.DeviceSharing
+	Shared             device.Shared
 }
 
 // FingerprintData represets attributes of driver/devices
@@ -121,7 +121,7 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 		}
 		// only set sharing status for mig devices in the client
 		// otherwise leave for device driver to set
-		var sharingStatus device.DeviceSharing
+		var sharingStatus device.Shared
 		if mode == mig {
 			sharingStatus = device.SharingIneligible
 		}

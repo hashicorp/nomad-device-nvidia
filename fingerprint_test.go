@@ -217,12 +217,12 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 		Name                     string
 		Device                   *NvidiaDevice
 		AllDevices               []*nvml.FingerprintDeviceData
-		DeviceMapAfterMethodCall map[string]device.DeviceSharing
+		DeviceMapAfterMethodCall map[string]device.Shared
 		ExpectedResult           bool
 	}{
 		{
 			Name: "No updates",
-			Device: &NvidiaDevice{devices: map[string]device.DeviceSharing{
+			Device: &NvidiaDevice{devices: map[string]device.Shared{
 				"1": "",
 				"2": "",
 				"3": "",
@@ -245,7 +245,7 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 				},
 			},
 			ExpectedResult: false,
-			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{
+			DeviceMapAfterMethodCall: map[string]device.Shared{
 				"1": "",
 				"2": "",
 				"3": "",
@@ -253,7 +253,7 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 		},
 		{
 			Name: "New Device Appeared",
-			Device: &NvidiaDevice{devices: map[string]device.DeviceSharing{
+			Device: &NvidiaDevice{devices: map[string]device.Shared{
 				"1": "",
 				"2": "",
 				"3": "",
@@ -281,7 +281,7 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 				},
 			},
 			ExpectedResult: true,
-			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{
+			DeviceMapAfterMethodCall: map[string]device.Shared{
 				"1":        "",
 				"2":        "",
 				"3":        "",
@@ -290,7 +290,7 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 		},
 		{
 			Name: "Device disappeared",
-			Device: &NvidiaDevice{devices: map[string]device.DeviceSharing{
+			Device: &NvidiaDevice{devices: map[string]device.Shared{
 				"1": "",
 				"2": "",
 				"3": "",
@@ -308,7 +308,7 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 				},
 			},
 			ExpectedResult: true,
-			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{
+			DeviceMapAfterMethodCall: map[string]device.Shared{
 				"1": "",
 				"2": "",
 			},
@@ -334,7 +334,7 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 				},
 			},
 			ExpectedResult: true,
-			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{
+			DeviceMapAfterMethodCall: map[string]device.Shared{
 				"1": "",
 				"2": "",
 				"3": "",
@@ -342,14 +342,14 @@ func TestCheckFingerprintUpdates(t *testing.T) {
 		},
 		{
 			Name: "No devices detected",
-			Device: &NvidiaDevice{devices: map[string]device.DeviceSharing{
+			Device: &NvidiaDevice{devices: map[string]device.Shared{
 				"1": "",
 				"2": "",
 				"3": "",
 			}},
 			AllDevices:               nil,
 			ExpectedResult:           true,
-			DeviceMapAfterMethodCall: map[string]device.DeviceSharing{},
+			DeviceMapAfterMethodCall: map[string]device.Shared{},
 		},
 	} {
 		t.Run(testCase.Name, func(t *testing.T) {
@@ -517,6 +517,7 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 						HwLocality: &device.DeviceLocality{
 							PciBusID: "pciBusID1",
 						},
+						Shared: device.SharingActive,
 					},
 					{
 						ID:      "2",

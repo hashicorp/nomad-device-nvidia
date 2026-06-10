@@ -154,7 +154,7 @@ type NvidiaDevice struct {
 	MpsConfig *MpsConfig
 
 	// devices is the set of detected eligible devices
-	devices    map[string]device.DeviceSharing
+	devices    map[string]device.Shared
 	deviceLock sync.RWMutex
 
 	logger hclog.Logger
@@ -169,7 +169,7 @@ func NewNvidiaDevice(_ context.Context, log hclog.Logger) *NvidiaDevice {
 	}
 	return &NvidiaDevice{
 		logger:        logger,
-		devices:       make(map[string]device.DeviceSharing),
+		devices:       make(map[string]device.Shared),
 		ignoredGPUIDs: make(map[string]struct{}),
 		nvmlClient:    nvmlClient,
 		initErr:       err,
@@ -278,10 +278,10 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 		return nil, device.ErrPluginDisabled
 	}
 	var (
-		notExistingIDs []string
-
+		notExistingIDs    []string
 		reservedDeviceIDs []string
 	)
+
 	containerEnvs := make(map[string]string)
 	// Due to the asynchronous nature of NvidiaPlugin, there is a possibility
 	// of race condition
@@ -347,6 +347,7 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 
 	// if mps is set return configured devices and mounts
 	containerEnvs[NvidiaVisibleDevices] = strings.Join(reservedDeviceIDs, ",")
+
 	return &device.ContainerReservation{
 		Envs: containerEnvs,
 		Mounts: []*device.Mount{{

@@ -200,7 +200,7 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 			HwLocality: &device.DeviceLocality{
 				PciBusID: dev.PCIBusID,
 			},
-			Shared: &dev.Shared,
+			Shared: dev.Shared,
 		}
 	}
 
@@ -228,7 +228,7 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData) map[string]*structs.Attribute {
 	attrs := map[string]*structs.Attribute{
 		DisplayStateAttr: {
-			String: pointer.Of(d.DisplayState),
+			String: new(d.DisplayState),
 		},
 		PersistenceModeAttr: {
 			String: pointer.Of(d.PersistenceMode),
