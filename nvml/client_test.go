@@ -234,7 +234,7 @@ func TestGetFingerprintDataFromNVML(t *testing.T) {
 						MemoryClockMHz:     new(uint(100)),
 						DisplayState:       "Enabled",
 						PersistenceMode:    "Enabled",
-						Shared:             device.SharingIneligible,
+						Shared:             device.SharingUnset,
 					},
 					{
 						DeviceData: &DeviceData{
@@ -250,7 +250,7 @@ func TestGetFingerprintDataFromNVML(t *testing.T) {
 						MemoryClockMHz:     new(uint(200)),
 						DisplayState:       "Enabled",
 						PersistenceMode:    "Enabled",
-						Shared:             device.SharingIneligible,
+						Shared:             device.SharingUnset,
 					},
 					{
 						DeviceData: &DeviceData{

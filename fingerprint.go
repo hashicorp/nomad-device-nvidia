@@ -75,13 +75,14 @@ func (d *NvidiaDevice) writeFingerprintToChannel(ctx context.Context, devices ch
 			fingerprintDevices := ignoreFingerprintedDevices(fingerprintData.Devices, d.ignoredGPUIDs)
 
 			for _, dev := range fingerprintDevices {
+				// skip mig mode devices marked ineligible by the client
+				if dev.Shared == device.SharingIneligible {
+					continue
+				}
+
 				//set device.SharingUnset if mpsConfig is nil
 				if d.MpsConfig == nil {
 					dev.Shared = device.SharingUnset
-					continue
-				}
-				// skip mig mode devices marked ineligible by the client
-				if dev.Shared != device.SharingIneligible {
 					continue
 				}
 
