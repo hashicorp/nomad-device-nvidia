@@ -12,6 +12,14 @@ import (
 	"github.com/shoenig/test/must"
 )
 
+func TestBuildID(t *testing.T) {
+	id := [32]int8{'0', '0', '0', '0', '0', '0', '0', '0', ':', '0', '1', ':', '0', '0', '.', '0'}
+
+	result := buildID(id)
+	must.Eq(t, 32, len(result))
+	must.Eq(t, "00000000:01:00.0", result[:16])
+}
+
 func TestDetermineMemoryInfo(t *testing.T) {
 	t.Run("uses device memory when supported", func(t *testing.T) {
 		totalMiB, usedMiB, usingSystemMemory, err := determineMemoryInfo(nvml.Memory{
