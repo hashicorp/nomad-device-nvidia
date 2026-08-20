@@ -11,7 +11,6 @@ import (
 
 	hclog "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
-	"github.com/hashicorp/nomad/helper/pointer"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/hashicorp/nomad/plugins/shared/structs"
 	"github.com/shoenig/test/must"
@@ -29,23 +28,23 @@ func TestIgnoreFingerprintedDevices(t *testing.T) {
 			DeviceData: []*nvml.FingerprintDeviceData{
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName1"),
+						DeviceName: new("DeviceName1"),
 						UUID:       "UUID1",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName2"),
+						DeviceName: new("DeviceName2"),
 						UUID:       "UUID2",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName3"),
+						DeviceName: new("DeviceName3"),
 						UUID:       "UUID3",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 			},
@@ -55,16 +54,16 @@ func TestIgnoreFingerprintedDevices(t *testing.T) {
 			ExpectedResult: []*nvml.FingerprintDeviceData{
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName1"),
+						DeviceName: new("DeviceName1"),
 						UUID:       "UUID1",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName3"),
+						DeviceName: new("DeviceName3"),
 						UUID:       "UUID3",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 			},
@@ -74,23 +73,23 @@ func TestIgnoreFingerprintedDevices(t *testing.T) {
 			DeviceData: []*nvml.FingerprintDeviceData{
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName1"),
+						DeviceName: new("DeviceName1"),
 						UUID:       "UUID1",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName2"),
+						DeviceName: new("DeviceName2"),
 						UUID:       "UUID2",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName3"),
+						DeviceName: new("DeviceName3"),
 						UUID:       "UUID3",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 			},
@@ -101,9 +100,9 @@ func TestIgnoreFingerprintedDevices(t *testing.T) {
 			ExpectedResult: []*nvml.FingerprintDeviceData{
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName2"),
+						DeviceName: new("DeviceName2"),
 						UUID:       "UUID2",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 			},
@@ -113,23 +112,23 @@ func TestIgnoreFingerprintedDevices(t *testing.T) {
 			DeviceData: []*nvml.FingerprintDeviceData{
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName1"),
+						DeviceName: new("DeviceName1"),
 						UUID:       "UUID1",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName2"),
+						DeviceName: new("DeviceName2"),
 						UUID:       "UUID2",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName3"),
+						DeviceName: new("DeviceName3"),
 						UUID:       "UUID3",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 			},
@@ -145,23 +144,23 @@ func TestIgnoreFingerprintedDevices(t *testing.T) {
 			DeviceData: []*nvml.FingerprintDeviceData{
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName1"),
+						DeviceName: new("DeviceName1"),
 						UUID:       "UUID1",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName2"),
+						DeviceName: new("DeviceName2"),
 						UUID:       "UUID2",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName3"),
+						DeviceName: new("DeviceName3"),
 						UUID:       "UUID3",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 			},
@@ -169,23 +168,23 @@ func TestIgnoreFingerprintedDevices(t *testing.T) {
 			ExpectedResult: []*nvml.FingerprintDeviceData{
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName1"),
+						DeviceName: new("DeviceName1"),
 						UUID:       "UUID1",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName2"),
+						DeviceName: new("DeviceName2"),
 						UUID:       "UUID2",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 				{
 					DeviceData: &nvml.DeviceData{
-						DeviceName: pointer.Of("DeviceName3"),
+						DeviceName: new("DeviceName3"),
 						UUID:       "UUID3",
-						MemoryMiB:  pointer.Of(uint64(1000)),
+						MemoryMiB:  new(uint64(1000)),
 					},
 				},
 			},
@@ -369,48 +368,48 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 			FingerprintDeviceData: &nvml.FingerprintDeviceData{
 				DeviceData: &nvml.DeviceData{
 					UUID:       "1",
-					DeviceName: pointer.Of("Type1"),
-					MemoryMiB:  pointer.Of(uint64(256)),
-					PowerW:     pointer.Of(uint(2)),
-					BAR1MiB:    pointer.Of(uint64(256)),
+					DeviceName: new("Type1"),
+					MemoryMiB:  new(uint64(256)),
+					PowerW:     new(uint(2)),
+					BAR1MiB:    new(uint64(256)),
 				},
 				PCIBusID:           "pciBusID1",
-				PCIBandwidthMBPerS: pointer.Of(uint(1)),
-				CoresClockMHz:      pointer.Of(uint(1)),
-				MemoryClockMHz:     pointer.Of(uint(1)),
+				PCIBandwidthMBPerS: new(uint(1)),
+				CoresClockMHz:      new(uint(1)),
+				MemoryClockMHz:     new(uint(1)),
 				DisplayState:       "Enabled",
 				PersistenceMode:    "Enabled",
 			},
 			ExpectedResult: map[string]*structs.Attribute{
 				MemoryAttr: {
-					Int:  pointer.Of(int64(256)),
+					Int:  new(int64(256)),
 					Unit: structs.UnitMiB,
 				},
 				PowerAttr: {
-					Int:  pointer.Of(int64(2)),
+					Int:  new(int64(2)),
 					Unit: structs.UnitW,
 				},
 				BAR1Attr: {
-					Int:  pointer.Of(int64(256)),
+					Int:  new(int64(256)),
 					Unit: structs.UnitMiB,
 				},
 				PCIBandwidthAttr: {
-					Int:  pointer.Of(int64(1)),
+					Int:  new(int64(1)),
 					Unit: structs.UnitMBPerS,
 				},
 				CoresClockAttr: {
-					Int:  pointer.Of(int64(1)),
+					Int:  new(int64(1)),
 					Unit: structs.UnitMHz,
 				},
 				MemoryClockAttr: {
-					Int:  pointer.Of(int64(1)),
+					Int:  new(int64(1)),
 					Unit: structs.UnitMHz,
 				},
 				DisplayStateAttr: {
-					String: pointer.Of("Enabled"),
+					String: new("Enabled"),
 				},
 				PersistenceModeAttr: {
-					String: pointer.Of("Enabled"),
+					String: new("Enabled"),
 				},
 			},
 		},
@@ -419,10 +418,10 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 			FingerprintDeviceData: &nvml.FingerprintDeviceData{
 				DeviceData: &nvml.DeviceData{
 					UUID:       "1",
-					DeviceName: pointer.Of("Type1"),
+					DeviceName: new("Type1"),
 					MemoryMiB:  nil,
-					PowerW:     pointer.Of(uint(2)),
-					BAR1MiB:    pointer.Of(uint64(256)),
+					PowerW:     new(uint(2)),
+					BAR1MiB:    new(uint64(256)),
 				},
 				PCIBusID:        "pciBusID1",
 				DisplayState:    "Enabled",
@@ -430,18 +429,18 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 			},
 			ExpectedResult: map[string]*structs.Attribute{
 				PowerAttr: {
-					Int:  pointer.Of(int64(2)),
+					Int:  new(int64(2)),
 					Unit: structs.UnitW,
 				},
 				BAR1Attr: {
-					Int:  pointer.Of(int64(256)),
+					Int:  new(int64(256)),
 					Unit: structs.UnitMiB,
 				},
 				DisplayStateAttr: {
-					String: pointer.Of("Enabled"),
+					String: new("Enabled"),
 				},
 				PersistenceModeAttr: {
-					String: pointer.Of("Enabled"),
+					String: new("Enabled"),
 				},
 			},
 		},
@@ -468,30 +467,30 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 				{
 					DeviceData: &nvml.DeviceData{
 						UUID:       "1",
-						DeviceName: pointer.Of("Type1"),
-						MemoryMiB:  pointer.Of(uint64(100)),
-						PowerW:     pointer.Of(uint(2)),
-						BAR1MiB:    pointer.Of(uint64(256)),
+						DeviceName: new("Type1"),
+						MemoryMiB:  new(uint64(100)),
+						PowerW:     new(uint(2)),
+						BAR1MiB:    new(uint64(256)),
 					},
 					PCIBusID:           "pciBusID1",
-					PCIBandwidthMBPerS: pointer.Of(uint(1)),
-					CoresClockMHz:      pointer.Of(uint(1)),
-					MemoryClockMHz:     pointer.Of(uint(1)),
+					PCIBandwidthMBPerS: new(uint(1)),
+					CoresClockMHz:      new(uint(1)),
+					MemoryClockMHz:     new(uint(1)),
 					DisplayState:       "Enabled",
 					PersistenceMode:    "Enabled",
 				},
 				{
 					DeviceData: &nvml.DeviceData{
 						UUID:       "2",
-						DeviceName: pointer.Of("Type1"),
-						MemoryMiB:  pointer.Of(uint64(100)),
-						PowerW:     pointer.Of(uint(2)),
-						BAR1MiB:    pointer.Of(uint64(256)),
+						DeviceName: new("Type1"),
+						MemoryMiB:  new(uint64(100)),
+						PowerW:     new(uint(2)),
+						BAR1MiB:    new(uint64(256)),
 					},
 					PCIBusID:           "pciBusID2",
-					PCIBandwidthMBPerS: pointer.Of(uint(1)),
-					CoresClockMHz:      pointer.Of(uint(1)),
-					MemoryClockMHz:     pointer.Of(uint(1)),
+					PCIBandwidthMBPerS: new(uint(1)),
+					CoresClockMHz:      new(uint(1)),
+					MemoryClockMHz:     new(uint(1)),
 					DisplayState:       "Enabled",
 					PersistenceMode:    "Enabled",
 				},
@@ -518,34 +517,34 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 				},
 				Attributes: map[string]*structs.Attribute{
 					MemoryAttr: {
-						Int:  pointer.Of(int64(100)),
+						Int:  new(int64(100)),
 						Unit: structs.UnitMiB,
 					},
 					PowerAttr: {
-						Int:  pointer.Of(int64(2)),
+						Int:  new(int64(2)),
 						Unit: structs.UnitW,
 					},
 					BAR1Attr: {
-						Int:  pointer.Of(int64(256)),
+						Int:  new(int64(256)),
 						Unit: structs.UnitMiB,
 					},
 					PCIBandwidthAttr: {
-						Int:  pointer.Of(int64(1)),
+						Int:  new(int64(1)),
 						Unit: structs.UnitMBPerS,
 					},
 					CoresClockAttr: {
-						Int:  pointer.Of(int64(1)),
+						Int:  new(int64(1)),
 						Unit: structs.UnitMHz,
 					},
 					MemoryClockAttr: {
-						Int:  pointer.Of(int64(1)),
+						Int:  new(int64(1)),
 						Unit: structs.UnitMHz,
 					},
 					DisplayStateAttr: {
-						String: pointer.Of("Enabled"),
+						String: new("Enabled"),
 					},
 					PersistenceModeAttr: {
-						String: pointer.Of("Enabled"),
+						String: new("Enabled"),
 					},
 				},
 			},
@@ -557,37 +556,37 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 				{
 					DeviceData: &nvml.DeviceData{
 						UUID:       "1",
-						DeviceName: pointer.Of("Type1"),
-						MemoryMiB:  pointer.Of(uint64(100)),
-						PowerW:     pointer.Of(uint(2)),
-						BAR1MiB:    pointer.Of(uint64(256)),
+						DeviceName: new("Type1"),
+						MemoryMiB:  new(uint64(100)),
+						PowerW:     new(uint(2)),
+						BAR1MiB:    new(uint64(256)),
 					},
 					PCIBusID:           "pciBusID1",
-					PCIBandwidthMBPerS: pointer.Of(uint(1)),
-					CoresClockMHz:      pointer.Of(uint(1)),
-					MemoryClockMHz:     pointer.Of(uint(1)),
+					PCIBandwidthMBPerS: new(uint(1)),
+					CoresClockMHz:      new(uint(1)),
+					MemoryClockMHz:     new(uint(1)),
 					DisplayState:       "Enabled",
 					PersistenceMode:    "Enabled",
 				},
 				{
 					DeviceData: &nvml.DeviceData{
 						UUID:       "2",
-						DeviceName: pointer.Of("Type1"),
-						MemoryMiB:  pointer.Of(uint64(100)),
-						PowerW:     pointer.Of(uint(2)),
-						BAR1MiB:    pointer.Of(uint64(256)),
+						DeviceName: new("Type1"),
+						MemoryMiB:  new(uint64(100)),
+						PowerW:     new(uint(2)),
+						BAR1MiB:    new(uint64(256)),
 					},
 					PCIBusID:           "pciBusID2",
-					PCIBandwidthMBPerS: pointer.Of(uint(1)),
-					CoresClockMHz:      pointer.Of(uint(1)),
-					MemoryClockMHz:     pointer.Of(uint(1)),
+					PCIBandwidthMBPerS: new(uint(1)),
+					CoresClockMHz:      new(uint(1)),
+					MemoryClockMHz:     new(uint(1)),
 					DisplayState:       "Enabled",
 					PersistenceMode:    "Enabled",
 				},
 			},
 			CommonAttributes: map[string]*structs.Attribute{
 				DriverVersionAttr: {
-					String: pointer.Of("1"),
+					String: new("1"),
 				},
 			},
 			ExpectedResult: &device.DeviceGroup{
@@ -612,37 +611,37 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 				},
 				Attributes: map[string]*structs.Attribute{
 					MemoryAttr: {
-						Int:  pointer.Of(int64(100)),
+						Int:  new(int64(100)),
 						Unit: structs.UnitMiB,
 					},
 					PowerAttr: {
-						Int:  pointer.Of(int64(2)),
+						Int:  new(int64(2)),
 						Unit: structs.UnitW,
 					},
 					BAR1Attr: {
-						Int:  pointer.Of(int64(256)),
+						Int:  new(int64(256)),
 						Unit: structs.UnitMiB,
 					},
 					PCIBandwidthAttr: {
-						Int:  pointer.Of(int64(1)),
+						Int:  new(int64(1)),
 						Unit: structs.UnitMBPerS,
 					},
 					CoresClockAttr: {
-						Int:  pointer.Of(int64(1)),
+						Int:  new(int64(1)),
 						Unit: structs.UnitMHz,
 					},
 					MemoryClockAttr: {
-						Int:  pointer.Of(int64(1)),
+						Int:  new(int64(1)),
 						Unit: structs.UnitMHz,
 					},
 					DisplayStateAttr: {
-						String: pointer.Of("Enabled"),
+						String: new("Enabled"),
 					},
 					PersistenceModeAttr: {
-						String: pointer.Of("Enabled"),
+						String: new("Enabled"),
 					},
 					DriverVersionAttr: {
-						String: pointer.Of("1"),
+						String: new("1"),
 					},
 				},
 			},
@@ -652,7 +651,7 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 			GroupName: "Type1",
 			CommonAttributes: map[string]*structs.Attribute{
 				DriverVersionAttr: {
-					String: pointer.Of("1"),
+					String: new("1"),
 				},
 			},
 			Devices:        nil,
@@ -694,30 +693,30 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "1",
-									DeviceName: pointer.Of("Name"),
-									MemoryMiB:  pointer.Of(uint64(10)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name"),
+									MemoryMiB:  new(uint64(10)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID1",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "2",
-									DeviceName: pointer.Of("Name"),
-									MemoryMiB:  pointer.Of(uint64(10)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name"),
+									MemoryMiB:  new(uint64(10)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID2",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
@@ -746,37 +745,37 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 						},
 						Attributes: map[string]*structs.Attribute{
 							MemoryAttr: {
-								Int:  pointer.Of(int64(10)),
+								Int:  new(int64(10)),
 								Unit: structs.UnitMiB,
 							},
 							PowerAttr: {
-								Int:  pointer.Of(int64(100)),
+								Int:  new(int64(100)),
 								Unit: structs.UnitW,
 							},
 							BAR1Attr: {
-								Int:  pointer.Of(int64(256)),
+								Int:  new(int64(256)),
 								Unit: structs.UnitMiB,
 							},
 							PCIBandwidthAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMBPerS,
 							},
 							CoresClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							MemoryClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							DisplayStateAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							PersistenceModeAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							DriverVersionAttr: {
-								String: pointer.Of("1"),
+								String: new("1"),
 							},
 						},
 					},
@@ -793,45 +792,45 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "1",
-									DeviceName: pointer.Of("Name1"),
-									MemoryMiB:  pointer.Of(uint64(10)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name1"),
+									MemoryMiB:  new(uint64(10)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID1",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "2",
-									DeviceName: pointer.Of("Name2"),
-									MemoryMiB:  pointer.Of(uint64(11)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name2"),
+									MemoryMiB:  new(uint64(11)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID2",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "3",
-									DeviceName: pointer.Of("Name3"),
-									MemoryMiB:  pointer.Of(uint64(12)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name3"),
+									MemoryMiB:  new(uint64(12)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID3",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
@@ -857,37 +856,37 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 						},
 						Attributes: map[string]*structs.Attribute{
 							MemoryAttr: {
-								Int:  pointer.Of(int64(10)),
+								Int:  new(int64(10)),
 								Unit: structs.UnitMiB,
 							},
 							PowerAttr: {
-								Int:  pointer.Of(int64(100)),
+								Int:  new(int64(100)),
 								Unit: structs.UnitW,
 							},
 							BAR1Attr: {
-								Int:  pointer.Of(int64(256)),
+								Int:  new(int64(256)),
 								Unit: structs.UnitMiB,
 							},
 							PCIBandwidthAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMBPerS,
 							},
 							CoresClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							MemoryClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							DisplayStateAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							PersistenceModeAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							DriverVersionAttr: {
-								String: pointer.Of("1"),
+								String: new("1"),
 							},
 						},
 					},
@@ -906,37 +905,37 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 						},
 						Attributes: map[string]*structs.Attribute{
 							MemoryAttr: {
-								Int:  pointer.Of(int64(11)),
+								Int:  new(int64(11)),
 								Unit: structs.UnitMiB,
 							},
 							PowerAttr: {
-								Int:  pointer.Of(int64(100)),
+								Int:  new(int64(100)),
 								Unit: structs.UnitW,
 							},
 							BAR1Attr: {
-								Int:  pointer.Of(int64(256)),
+								Int:  new(int64(256)),
 								Unit: structs.UnitMiB,
 							},
 							PCIBandwidthAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMBPerS,
 							},
 							CoresClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							MemoryClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							DisplayStateAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							PersistenceModeAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							DriverVersionAttr: {
-								String: pointer.Of("1"),
+								String: new("1"),
 							},
 						},
 					},
@@ -955,37 +954,37 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 						},
 						Attributes: map[string]*structs.Attribute{
 							MemoryAttr: {
-								Int:  pointer.Of(int64(12)),
+								Int:  new(int64(12)),
 								Unit: structs.UnitMiB,
 							},
 							PowerAttr: {
-								Int:  pointer.Of(int64(100)),
+								Int:  new(int64(100)),
 								Unit: structs.UnitW,
 							},
 							BAR1Attr: {
-								Int:  pointer.Of(int64(256)),
+								Int:  new(int64(256)),
 								Unit: structs.UnitMiB,
 							},
 							PCIBandwidthAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMBPerS,
 							},
 							CoresClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							MemoryClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							DisplayStateAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							PersistenceModeAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							DriverVersionAttr: {
-								String: pointer.Of("1"),
+								String: new("1"),
 							},
 						},
 					},
@@ -1002,45 +1001,45 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "1",
-									DeviceName: pointer.Of("Name1"),
-									MemoryMiB:  pointer.Of(uint64(10)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name1"),
+									MemoryMiB:  new(uint64(10)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID1",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "2",
-									DeviceName: pointer.Of("Name2"),
-									MemoryMiB:  pointer.Of(uint64(11)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name2"),
+									MemoryMiB:  new(uint64(11)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID2",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "3",
-									DeviceName: pointer.Of("Name2"),
-									MemoryMiB:  pointer.Of(uint64(12)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name2"),
+									MemoryMiB:  new(uint64(12)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID3",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
@@ -1066,37 +1065,37 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 						},
 						Attributes: map[string]*structs.Attribute{
 							MemoryAttr: {
-								Int:  pointer.Of(int64(10)),
+								Int:  new(int64(10)),
 								Unit: structs.UnitMiB,
 							},
 							PowerAttr: {
-								Int:  pointer.Of(int64(100)),
+								Int:  new(int64(100)),
 								Unit: structs.UnitW,
 							},
 							BAR1Attr: {
-								Int:  pointer.Of(int64(256)),
+								Int:  new(int64(256)),
 								Unit: structs.UnitMiB,
 							},
 							PCIBandwidthAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMBPerS,
 							},
 							CoresClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							MemoryClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							DisplayStateAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							PersistenceModeAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							DriverVersionAttr: {
-								String: pointer.Of("1"),
+								String: new("1"),
 							},
 						},
 					},
@@ -1122,37 +1121,37 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 						},
 						Attributes: map[string]*structs.Attribute{
 							MemoryAttr: {
-								Int:  pointer.Of(int64(11)),
+								Int:  new(int64(11)),
 								Unit: structs.UnitMiB,
 							},
 							PowerAttr: {
-								Int:  pointer.Of(int64(100)),
+								Int:  new(int64(100)),
 								Unit: structs.UnitW,
 							},
 							BAR1Attr: {
-								Int:  pointer.Of(int64(256)),
+								Int:  new(int64(256)),
 								Unit: structs.UnitMiB,
 							},
 							PCIBandwidthAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMBPerS,
 							},
 							CoresClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							MemoryClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							DisplayStateAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							PersistenceModeAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							DriverVersionAttr: {
-								String: pointer.Of("1"),
+								String: new("1"),
 							},
 						},
 					},
@@ -1197,45 +1196,45 @@ func TestFingerprint(t *testing.T) {
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "1",
-									DeviceName: pointer.Of("Name1"),
-									MemoryMiB:  pointer.Of(uint64(10)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name1"),
+									MemoryMiB:  new(uint64(10)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID1",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "2",
-									DeviceName: pointer.Of("Name1"),
-									MemoryMiB:  pointer.Of(uint64(10)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name1"),
+									MemoryMiB:  new(uint64(10)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID2",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "3",
-									DeviceName: pointer.Of("Name1"),
-									MemoryMiB:  pointer.Of(uint64(10)),
-									PowerW:     pointer.Of(uint(100)),
-									BAR1MiB:    pointer.Of(uint64(256)),
+									DeviceName: new("Name1"),
+									MemoryMiB:  new(uint64(10)),
+									PowerW:     new(uint(100)),
+									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID3",
-								PCIBandwidthMBPerS: pointer.Of(uint(1)),
-								CoresClockMHz:      pointer.Of(uint(1)),
-								MemoryClockMHz:     pointer.Of(uint(1)),
+								PCIBandwidthMBPerS: new(uint(1)),
+								CoresClockMHz:      new(uint(1)),
+								MemoryClockMHz:     new(uint(1)),
 								DisplayState:       "Enabled",
 								PersistenceMode:    "Enabled",
 							},
@@ -1275,37 +1274,37 @@ func TestFingerprint(t *testing.T) {
 						},
 						Attributes: map[string]*structs.Attribute{
 							MemoryAttr: {
-								Int:  pointer.Of(int64(10)),
+								Int:  new(int64(10)),
 								Unit: structs.UnitMiB,
 							},
 							PowerAttr: {
-								Int:  pointer.Of(int64(100)),
+								Int:  new(int64(100)),
 								Unit: structs.UnitW,
 							},
 							BAR1Attr: {
-								Int:  pointer.Of(int64(256)),
+								Int:  new(int64(256)),
 								Unit: structs.UnitMiB,
 							},
 							PCIBandwidthAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMBPerS,
 							},
 							CoresClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							MemoryClockAttr: {
-								Int:  pointer.Of(int64(1)),
+								Int:  new(int64(1)),
 								Unit: structs.UnitMHz,
 							},
 							DisplayStateAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							PersistenceModeAttr: {
-								String: pointer.Of("Enabled"),
+								String: new("Enabled"),
 							},
 							DriverVersionAttr: {
-								String: pointer.Of("1"),
+								String: new("1"),
 							},
 						},
 					},
@@ -1323,22 +1322,22 @@ func TestFingerprint(t *testing.T) {
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "1",
-									DeviceName: pointer.Of("Name1"),
-									MemoryMiB:  pointer.Of(uint64(10)),
+									DeviceName: new("Name1"),
+									MemoryMiB:  new(uint64(10)),
 								},
 							},
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "2",
-									DeviceName: pointer.Of("Name1"),
-									MemoryMiB:  pointer.Of(uint64(10)),
+									DeviceName: new("Name1"),
+									MemoryMiB:  new(uint64(10)),
 								},
 							},
 							{
 								DeviceData: &nvml.DeviceData{
 									UUID:       "3",
-									DeviceName: pointer.Of("Name1"),
-									MemoryMiB:  pointer.Of(uint64(10)),
+									DeviceName: new("Name1"),
+									MemoryMiB:  new(uint64(10)),
 								},
 							},
 						},

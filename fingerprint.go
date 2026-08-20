@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/nomad-device-nvidia/nvml"
-	"github.com/hashicorp/nomad/helper/pointer"
 	"github.com/hashicorp/nomad/plugins/device"
 	"github.com/hashicorp/nomad/plugins/shared/structs"
 )
@@ -73,7 +72,7 @@ func (d *NvidiaDevice) writeFingerprintToChannel(devices chan<- *device.Fingerpr
 
 	commonAttributes := map[string]*structs.Attribute{
 		DriverVersionAttr: {
-			String: pointer.Of(fingerprintData.DriverVersion),
+			String: new(fingerprintData.DriverVersion),
 		},
 	}
 
@@ -184,46 +183,46 @@ func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.Fingerp
 func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData) map[string]*structs.Attribute {
 	attrs := map[string]*structs.Attribute{
 		DisplayStateAttr: {
-			String: pointer.Of(d.DisplayState),
+			String: new(d.DisplayState),
 		},
 		PersistenceModeAttr: {
-			String: pointer.Of(d.PersistenceMode),
+			String: new(d.PersistenceMode),
 		},
 	}
 
 	if d.MemoryMiB != nil {
 		attrs[MemoryAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.MemoryMiB)),
+			Int:  new(int64(*d.MemoryMiB)),
 			Unit: structs.UnitMiB,
 		}
 	}
 	if d.PowerW != nil {
 		attrs[PowerAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.PowerW)),
+			Int:  new(int64(*d.PowerW)),
 			Unit: structs.UnitW,
 		}
 	}
 	if d.BAR1MiB != nil {
 		attrs[BAR1Attr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.BAR1MiB)),
+			Int:  new(int64(*d.BAR1MiB)),
 			Unit: structs.UnitMiB,
 		}
 	}
 	if d.CoresClockMHz != nil {
 		attrs[CoresClockAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.CoresClockMHz)),
+			Int:  new(int64(*d.CoresClockMHz)),
 			Unit: structs.UnitMHz,
 		}
 	}
 	if d.MemoryClockMHz != nil {
 		attrs[MemoryClockAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.MemoryClockMHz)),
+			Int:  new(int64(*d.MemoryClockMHz)),
 			Unit: structs.UnitMHz,
 		}
 	}
 	if d.PCIBandwidthMBPerS != nil {
 		attrs[PCIBandwidthAttr] = &structs.Attribute{
-			Int:  pointer.Of(int64(*d.PCIBandwidthMBPerS)),
+			Int:  new(int64(*d.PCIBandwidthMBPerS)),
 			Unit: structs.UnitMBPerS,
 		}
 	}
