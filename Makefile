@@ -25,6 +25,12 @@ test:
 	@echo "==> Running tests ..."
 	go test -v -race ./...
 
+.PHONY: lint-deps
+lint-deps:
+	@echo "==> Installing lint dependencies..."
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.0
+	@echo "Done"
+
 .PHONY: lint
 lint:
 	@echo "==> Lint nvidia driver ..."
