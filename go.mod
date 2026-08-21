@@ -23,14 +23,12 @@ require (
 	github.com/Masterminds/sprig/v3 v3.3.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
-	github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2 // indirect
 	github.com/armon/go-metrics v0.5.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/container-storage-interface/spec v1.12.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/docker/docker-credential-helpers v0.9.3 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.5 // indirect
@@ -80,7 +78,6 @@ require (
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/hpcloud/tail v1.0.1-0.20170814160653-37f427138745 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
-	github.com/ishidawataru/sctp v0.0.0-20250303034628-ecf9ed6df987 // indirect
 	github.com/jefferai/isbadcipher v0.0.0-20190226160619-51d2077c035f // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
