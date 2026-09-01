@@ -19,6 +19,7 @@ binary {
       vulnerabilities = [
         "GO-2025-3510", // TODO(dduzgun-security): false positive scan result, investigate why and fix
         "GO-2024-3262", // TODO(dduzgun-security): false positive scan result, investigate why and fix
+        "GO-2026-5932", // jrasell: Report within openpgp which is unmtained, not used here, and won't ever be fixed.
       ]
     }
   }
