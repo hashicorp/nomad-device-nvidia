@@ -358,7 +358,7 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 				return nil, nil, decode("failed to get device power usage", code)
 			}
 		}
-		powerU = uint(power)
+		powerU = uint(power) / 1000
 	}
 
 	ecc, code := nvml.DeviceGetDetailedEccErrors(device, nvml.MEMORY_ERROR_TYPE_CORRECTED, nvml.VOLATILE_ECC)
