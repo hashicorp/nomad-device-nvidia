@@ -15,9 +15,9 @@ import (
 const (
 	// Attribute names for reporting stats output
 	PowerUsageAttr = "Power usage"
-	PowerUsageUnit = "W"
-	PowerUsageDesc = "Power usage for this GPU in watts and " +
-		"its associated circuitry (e.g. memory) / Maximum GPU Power"
+	PowerUsageUnit = "mW"
+	PowerUsageDesc = "Power usage for this GPU and its associated circuitry (e.g. memory) / " +
+		"Maximum GPU Power, both in milliwatts"
 	GPUUtilizationAttr = "GPU utilization"
 	GPUUtilizationUnit = "%"
 	GPUUtilizationDesc = "Percent of time over the past sample period " +
@@ -175,14 +175,14 @@ func statsForItem(statsItem *nvml.StatsData, timestamp time.Time) *device.Device
 		ECCErrorsDeviceStat    *structs.StatValue
 	)
 
-	if statsItem.PowerUsageW == nil || statsItem.PowerW == nil {
+	if statsItem.PowerUsageMW == nil || statsItem.PowerMW == nil {
 		powerUsageStat = newNotAvailableDeviceStats(PowerUsageUnit, PowerUsageDesc)
 	} else {
 		powerUsageStat = &structs.StatValue{
 			Unit:              PowerUsageUnit,
 			Desc:              PowerUsageDesc,
-			IntNumeratorVal:   new(int64(*statsItem.PowerUsageW)),
-			IntDenominatorVal: uintToInt64Ptr(statsItem.PowerW),
+			IntNumeratorVal:   new(int64(*statsItem.PowerUsageMW)),
+			IntDenominatorVal: uintToInt64Ptr(statsItem.PowerMW),
 		}
 	}
 

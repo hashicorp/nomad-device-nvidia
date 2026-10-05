@@ -14,7 +14,7 @@ type DeviceData struct {
 	UUID       string
 	DeviceName *string
 	MemoryMiB  *uint64
-	PowerW     *uint
+	PowerMW    *uint // Milliwatts.
 	BAR1MiB    *uint64
 }
 
@@ -41,7 +41,7 @@ type FingerprintData struct {
 // it represents statistics data returned for every Nvidia device
 type StatsData struct {
 	*DeviceData
-	PowerUsageW        *uint
+	PowerUsageMW       *uint // Milliwatts.
 	GPUUtilization     *uint
 	MemoryUtilization  *uint
 	EncoderUtilization *uint
@@ -127,7 +127,7 @@ func (c *nvmlClient) GetFingerprintData() (*FingerprintData, error) {
 				DeviceName: deviceInfo.Name,
 				UUID:       deviceInfo.UUID,
 				MemoryMiB:  deviceInfo.MemoryMiB,
-				PowerW:     deviceInfo.PowerW,
+				PowerMW:    deviceInfo.PowerMW,
 				BAR1MiB:    deviceInfo.BAR1MiB,
 			},
 			PCIBandwidthMBPerS: deviceInfo.PCIBandwidthMBPerS,
@@ -197,10 +197,10 @@ func (c *nvmlClient) GetStatsData() ([]*StatsData, error) {
 				DeviceName: deviceInfo.Name,
 				UUID:       deviceInfo.UUID,
 				MemoryMiB:  deviceInfo.MemoryMiB,
-				PowerW:     deviceInfo.PowerW,
+				PowerMW:    deviceInfo.PowerMW,
 				BAR1MiB:    deviceInfo.BAR1MiB,
 			},
-			PowerUsageW:        deviceStatus.PowerUsageW,
+			PowerUsageMW:       deviceStatus.PowerUsageMW,
 			GPUUtilization:     deviceStatus.GPUUtilization,
 			MemoryUtilization:  deviceStatus.MemoryUtilization,
 			EncoderUtilization: deviceStatus.EncoderUtilization,

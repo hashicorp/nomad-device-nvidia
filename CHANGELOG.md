@@ -1,5 +1,8 @@
 ## UNRELEASED
 
+BREAKING CHANGES:
+ * driver: Report the `power` fingerprint and both `Power usage` values in milliwatts (`mW`), preserving sub-watt precision. Consumers expecting watts must convert units. Exported NVML fields `PowerW` and `PowerUsageW` are renamed to `PowerMW` and `PowerUsageMW`; Go callers must update field references. [[GH-118](https://github.com/hashicorp/nomad-device-nvidia/pull/118)]
+
 IMPROVEMENTS:
  * build: Build for arm64 architectures [[GH-86](https://github.com/hashicorp/nomad-device-nvidia/pull/86)]
  * build: Updated Nomad to 1.11.0 [[GH-80](https://github.com/hashicorp/nomad-device-nvidia/pull/80)]

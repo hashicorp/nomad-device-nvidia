@@ -196,10 +196,10 @@ func attributesFromFingerprintDeviceData(d *nvml.FingerprintDeviceData) map[stri
 			Unit: structs.UnitMiB,
 		}
 	}
-	if d.PowerW != nil {
+	if d.PowerMW != nil {
 		attrs[PowerAttr] = &structs.Attribute{
-			Int:  new(int64(*d.PowerW)),
-			Unit: structs.UnitW,
+			Int:  new(int64(*d.PowerMW)),
+			Unit: structs.UnitmW,
 		}
 	}
 	if d.BAR1MiB != nil {
