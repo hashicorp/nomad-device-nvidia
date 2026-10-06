@@ -1,5 +1,8 @@
 ## UNRELEASED
 
+BREAKING CHANGES:
+ * fingerprint: Report the `power` fingerprint and both `Power usage` values in milliwatts (`mW`), preserving sub-watt precision. Consumers expecting watts must convert units. [[GH-118](https://github.com/hashicorp/nomad-device-nvidia/pull/118)]
+
 IMPROVEMENTS:
  * build: Build for arm64 architectures [[GH-86](https://github.com/hashicorp/nomad-device-nvidia/pull/86)]
  * build: Updated Nomad to 2.0.7 [[GH-122](https://github.com/hashicorp/nomad-device-nvidia/pull/122)]

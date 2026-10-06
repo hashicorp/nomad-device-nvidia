@@ -46,7 +46,7 @@ type DeviceInfo struct {
 	// not able to retrieve this fields for specific nvidia card
 	Name               *string
 	MemoryMiB          *uint64
-	PowerW             *uint
+	PowerMW            *uint // Milliwatts.
 	BAR1MiB            *uint64
 	PCIBandwidthMBPerS *uint
 	CoresClockMHz      *uint
@@ -58,7 +58,7 @@ type DeviceInfo struct {
 type DeviceStatus struct {
 	// The following fields can be nil after call to nvml, because nvml was
 	// not able to retrieve this fields for specific nvidia card
-	PowerUsageW           *uint
+	PowerUsageMW          *uint // Milliwatts.
 	TemperatureC          *uint
 	GPUUtilization        *uint // %
 	MemoryUtilization     *uint // %

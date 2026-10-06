@@ -370,7 +370,7 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 					UUID:       "1",
 					DeviceName: new("Type1"),
 					MemoryMiB:  new(uint64(256)),
-					PowerW:     new(uint(2)),
+					PowerMW:    new(uint(4034)),
 					BAR1MiB:    new(uint64(256)),
 				},
 				PCIBusID:           "pciBusID1",
@@ -386,8 +386,8 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 					Unit: structs.UnitMiB,
 				},
 				PowerAttr: {
-					Int:  new(int64(2)),
-					Unit: structs.UnitW,
+					Int:  new(int64(4034)),
+					Unit: structs.UnitmW,
 				},
 				BAR1Attr: {
 					Int:  new(int64(256)),
@@ -420,7 +420,7 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 					UUID:       "1",
 					DeviceName: new("Type1"),
 					MemoryMiB:  nil,
-					PowerW:     new(uint(2)),
+					PowerMW:    new(uint(2)),
 					BAR1MiB:    new(uint64(256)),
 				},
 				PCIBusID:        "pciBusID1",
@@ -430,7 +430,7 @@ func TestAttributesFromFingerprintDeviceData(t *testing.T) {
 			ExpectedResult: map[string]*structs.Attribute{
 				PowerAttr: {
 					Int:  new(int64(2)),
-					Unit: structs.UnitW,
+					Unit: structs.UnitmW,
 				},
 				BAR1Attr: {
 					Int:  new(int64(256)),
@@ -469,7 +469,7 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 						UUID:       "1",
 						DeviceName: new("Type1"),
 						MemoryMiB:  new(uint64(100)),
-						PowerW:     new(uint(2)),
+						PowerMW:    new(uint(2)),
 						BAR1MiB:    new(uint64(256)),
 					},
 					PCIBusID:           "pciBusID1",
@@ -484,7 +484,7 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 						UUID:       "2",
 						DeviceName: new("Type1"),
 						MemoryMiB:  new(uint64(100)),
-						PowerW:     new(uint(2)),
+						PowerMW:    new(uint(2)),
 						BAR1MiB:    new(uint64(256)),
 					},
 					PCIBusID:           "pciBusID2",
@@ -522,7 +522,7 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 					},
 					PowerAttr: {
 						Int:  new(int64(2)),
-						Unit: structs.UnitW,
+						Unit: structs.UnitmW,
 					},
 					BAR1Attr: {
 						Int:  new(int64(256)),
@@ -558,7 +558,7 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 						UUID:       "1",
 						DeviceName: new("Type1"),
 						MemoryMiB:  new(uint64(100)),
-						PowerW:     new(uint(2)),
+						PowerMW:    new(uint(2)),
 						BAR1MiB:    new(uint64(256)),
 					},
 					PCIBusID:           "pciBusID1",
@@ -573,7 +573,7 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 						UUID:       "2",
 						DeviceName: new("Type1"),
 						MemoryMiB:  new(uint64(100)),
-						PowerW:     new(uint(2)),
+						PowerMW:    new(uint(2)),
 						BAR1MiB:    new(uint64(256)),
 					},
 					PCIBusID:           "pciBusID2",
@@ -616,7 +616,7 @@ func TestDeviceGroupFromFingerprintData(t *testing.T) {
 					},
 					PowerAttr: {
 						Int:  new(int64(2)),
-						Unit: structs.UnitW,
+						Unit: structs.UnitmW,
 					},
 					BAR1Attr: {
 						Int:  new(int64(256)),
@@ -695,7 +695,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 									UUID:       "1",
 									DeviceName: new("Name"),
 									MemoryMiB:  new(uint64(10)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID1",
@@ -710,7 +710,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 									UUID:       "2",
 									DeviceName: new("Name"),
 									MemoryMiB:  new(uint64(10)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID2",
@@ -750,7 +750,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							PowerAttr: {
 								Int:  new(int64(100)),
-								Unit: structs.UnitW,
+								Unit: structs.UnitmW,
 							},
 							BAR1Attr: {
 								Int:  new(int64(256)),
@@ -794,7 +794,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 									UUID:       "1",
 									DeviceName: new("Name1"),
 									MemoryMiB:  new(uint64(10)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID1",
@@ -809,7 +809,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 									UUID:       "2",
 									DeviceName: new("Name2"),
 									MemoryMiB:  new(uint64(11)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID2",
@@ -824,7 +824,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 									UUID:       "3",
 									DeviceName: new("Name3"),
 									MemoryMiB:  new(uint64(12)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID3",
@@ -861,7 +861,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							PowerAttr: {
 								Int:  new(int64(100)),
-								Unit: structs.UnitW,
+								Unit: structs.UnitmW,
 							},
 							BAR1Attr: {
 								Int:  new(int64(256)),
@@ -910,7 +910,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							PowerAttr: {
 								Int:  new(int64(100)),
-								Unit: structs.UnitW,
+								Unit: structs.UnitmW,
 							},
 							BAR1Attr: {
 								Int:  new(int64(256)),
@@ -959,7 +959,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							PowerAttr: {
 								Int:  new(int64(100)),
-								Unit: structs.UnitW,
+								Unit: structs.UnitmW,
 							},
 							BAR1Attr: {
 								Int:  new(int64(256)),
@@ -1003,7 +1003,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 									UUID:       "1",
 									DeviceName: new("Name1"),
 									MemoryMiB:  new(uint64(10)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID1",
@@ -1018,7 +1018,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 									UUID:       "2",
 									DeviceName: new("Name2"),
 									MemoryMiB:  new(uint64(11)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID2",
@@ -1033,7 +1033,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 									UUID:       "3",
 									DeviceName: new("Name2"),
 									MemoryMiB:  new(uint64(12)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID3",
@@ -1070,7 +1070,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							PowerAttr: {
 								Int:  new(int64(100)),
-								Unit: structs.UnitW,
+								Unit: structs.UnitmW,
 							},
 							BAR1Attr: {
 								Int:  new(int64(256)),
@@ -1126,7 +1126,7 @@ func TestWriteFingerprintToChannel(t *testing.T) {
 							},
 							PowerAttr: {
 								Int:  new(int64(100)),
-								Unit: structs.UnitW,
+								Unit: structs.UnitmW,
 							},
 							BAR1Attr: {
 								Int:  new(int64(256)),
@@ -1198,7 +1198,7 @@ func TestFingerprint(t *testing.T) {
 									UUID:       "1",
 									DeviceName: new("Name1"),
 									MemoryMiB:  new(uint64(10)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID1",
@@ -1213,7 +1213,7 @@ func TestFingerprint(t *testing.T) {
 									UUID:       "2",
 									DeviceName: new("Name1"),
 									MemoryMiB:  new(uint64(10)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID2",
@@ -1228,7 +1228,7 @@ func TestFingerprint(t *testing.T) {
 									UUID:       "3",
 									DeviceName: new("Name1"),
 									MemoryMiB:  new(uint64(10)),
-									PowerW:     new(uint(100)),
+									PowerMW:    new(uint(100)),
 									BAR1MiB:    new(uint64(256)),
 								},
 								PCIBusID:           "pciBusID3",
@@ -1279,7 +1279,7 @@ func TestFingerprint(t *testing.T) {
 							},
 							PowerAttr: {
 								Int:  new(int64(100)),
-								Unit: structs.UnitW,
+								Unit: structs.UnitmW,
 							},
 							BAR1Attr: {
 								Int:  new(int64(256)),

@@ -168,7 +168,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 			return nil, decode("failed to get device power info", code)
 		}
 	}
-	powerU := uint(power) / 1000
+	powerU := uint(power)
 
 	bar1, code := nvml.DeviceGetBAR1MemoryInfo(device)
 	var bar1total *uint64
@@ -252,7 +252,7 @@ func (n *nvmlDriver) DeviceInfoByUUID(uuid string) (*DeviceInfo, error) {
 		UUID:               uuid,
 		Name:               &name,
 		MemoryMiB:          &memoryTotal,
-		PowerW:             &powerU,
+		PowerMW:            &powerU,
 		BAR1MiB:            bar1total,
 		PCIBandwidthMBPerS: &bandwidth,
 		PCIBusID:           busID,
@@ -377,7 +377,7 @@ func (n *nvmlDriver) DeviceInfoAndStatusByUUID(uuid string) (*DeviceInfo, *Devic
 		EncoderUtilization:    &utzEncU,
 		DecoderUtilization:    &utzDecU,
 		UsedMemoryMiB:         &memUsedU,
-		PowerUsageW:           &powerU,
+		PowerUsageMW:          &powerU,
 		BAR1UsedMiB:           barUsed,
 		ECCErrorsDevice:       &ecc.DeviceMemory,
 		ECCErrorsL1Cache:      &ecc.L1Cache,
