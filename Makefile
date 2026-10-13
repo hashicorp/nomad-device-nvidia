@@ -28,7 +28,7 @@ test:
 .PHONY: lint-deps
 lint-deps:
 	@echo "==> Installing lint dependencies..."
-	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.0
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
 	@echo "Done"
 
 .PHONY: lint
